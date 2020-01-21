@@ -19,12 +19,10 @@ df.loc[0] = first
 #행 이름 설정해주기
 col_nme = ['Lemma','Category','Morph1']
 
-for nme in df.columns:
-    if 'Unnamed' in nme:
-        n_nme = re.sub('Unnamed: ([0-9]+)', 'info\\1',nme)
-        col_nme.append(n_nme)
-        if len(df.columns) != len(col_nme):
-            del col_nme[len(col_nme) - 1]
+l = len(df.columns)
+for i in range(1, l - 2):
+    info = 'info' + str(i)
+    col_nme.append(info)
 
 df.columns = col_nme
 
@@ -39,17 +37,17 @@ def df2first(df,col):
     return res
 
 #시작 혹은 끝 부분을 검색하기
-def reg(loc):
+def reg(loc,old_text):
     if loc == 'begin':
-        regex = '^' + input('지울 것은? ')
+        regex = '^' + old_text
     if loc == 'end':
-        regex = input('지울 것은? ') + '$'
+        regex = old_text + '$'
     return(regex)
    
 #remove하기    
-def rmv(df,col, regex):
+def rmv(df,col, regex, old_text):
     res = []
-    k = re.compile(reg(regex))
+    k = re.compile(reg(regex, old_text))
     first = df2first(df,col)
     for x in first:
         first = k.sub('',x)
@@ -64,4 +62,7 @@ def rmv(df,col, regex):
     
     print(df)
 
-rmv(df, input('수정을 원하는 행 이름: '), input('begin or end? '))
+
+
+rmv(df, input('수정을 원하는 행 이름 선택(Lemma, Category) '), input('begin or end? '), input('original text: '))
+
