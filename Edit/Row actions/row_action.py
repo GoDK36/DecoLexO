@@ -36,14 +36,14 @@ def addrow(df):
 ##행 삭제
 
 def delrow(df):
-    df = df.drop(len(df)-1,0)
-    return df
+    res_df = df.drop(len(df)-1,0)
+    return res_df
 
 
 ##행 복제
 
 def duprow(df):
     sel = input('복제를 원하는 행 번호: ')
-    sel_row = list(df.iloc[int(sel)])
-    df.loc[len(df)] = sel_row
-    return(df)
+    res_df = df.append(df.iloc[int(sel)], ignore_index = True)
+    return(res_df)
+
