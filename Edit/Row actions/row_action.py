@@ -46,4 +46,3 @@ def duprow(df):
     sel = input('복제를 원하는 행 번호: ')
     res_df = df.append(df.iloc[int(sel)], ignore_index = True)
     return(res_df)
-
