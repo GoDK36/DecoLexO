@@ -8,12 +8,16 @@ df = pd.read_csv(r'G:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\Deco
 ####행 이름 decolex처럼 변경하기####
 
 #첫 행 살리기
+col_rgx = re.compile(r'(.*)')
 first = list(df.columns)
 df.loc[0] = first
 for val in first:
-    if 'Unnamed' in val:
+    m = col_rgx.match(val)
+    if m:
         x = first.index(val)
         first[x] = np.nan
+    else:
+        continue
 df.loc[0] = first
 
 #행 이름 설정해주기
