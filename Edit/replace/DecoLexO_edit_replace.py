@@ -2,14 +2,13 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df = pd.read_csv(r'G:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DecoLex_Test.csv')
+df = pd.read_csv(r'C:\GOD\programming\NLP\DecoLexO\Edit\example\DecoLex_Test.csv')
 
-print(df)
 
 ####행 이름 decolex처럼 변경하기####
 
 #첫 행 살리기
-col_rgx = re.compile(r'(.*)') ##모든 문자열을 찾기(.이나 Unnamed나)
+col_rgx = re.compile(r'[A-Za-z]{6,}[:\.]?')
 first = list(df.columns)
 df.loc[0] = first
 for val in first:
@@ -17,13 +16,15 @@ for val in first:
     if m:
         x = first.index(val)
         first[x] = np.nan
+    else:
+        continue
 df.loc[0] = first
+
 
 #행 이름 설정해주기
 col_nme = ['Lemma','Category','Morph1']
 
 l = len(df.columns)
-print(2)
 for i in range(1, l - 2):
     info = 'info' + str(i)
     col_nme.append(info)

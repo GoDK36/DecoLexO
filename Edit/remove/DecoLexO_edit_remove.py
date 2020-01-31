@@ -2,13 +2,13 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df = pd.read_csv(r'G:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DecoLex_Test.csv')
+df = pd.read_csv(r'C:\GOD\programming\NLP\DecoLexO\Edit\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv')
 
 
 ####행 이름 decolex처럼 변경하기####
 
 #첫 행 살리기
-col_rgx = re.compile(r'(.*)')
+col_rgx = re.compile(r'[A-Za-z]{6,}[:\.]?')
 first = list(df.columns)
 df.loc[0] = first
 for val in first:
