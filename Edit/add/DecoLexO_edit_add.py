@@ -41,7 +41,7 @@ def df2first(df,col):
     return res
 
 #add하기    
-def rmv(df, col, add_place, add_text):
+def add(df, col, add_place, add_text):
     res = []
     first = df2first(df,col)
     if add_place == 'begin':
