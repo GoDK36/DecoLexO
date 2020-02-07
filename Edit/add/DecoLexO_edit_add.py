@@ -59,4 +59,4 @@ def add(df, col, add_place, add_text):
     
     print(df)
 
-rmv(df, input('수정을 원하는 행 이름 선택(Lemma, Category) '), input('begin or end? '), input('add text: '))
+add(df, input('수정을 원하는 행 이름 선택(Lemma, Category) '), input('begin or end? '), input('add text: '))
