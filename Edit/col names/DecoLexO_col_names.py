@@ -117,29 +117,3 @@ for x in range(0, l):
 
 df.columns = col_nme
 
-##행 추가
-def addrow(df):
-    df.loc[len(df)] = np.nan
-    return df
-
-
-##행 삭제
-
-def delrow(df):
-    res_df = df.drop(len(df)-1,0)
-    return res_df
-
-
-##행 복제
-
-def duprow(df):
-    sel = input('복제를 원하는 행 번호: ')
-    res_df = df.append(df.iloc[int(sel)], ignore_index = True)
-    return(res_df)
-
-
-print(addrow(df))
-
-# print(delrow(df))
-
-# print(duprow(df))
