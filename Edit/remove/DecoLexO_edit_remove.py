@@ -150,9 +150,7 @@ def rmv(df,col, regex, old_text):
     #열 위치 재정렬
     df = df[col_nme]
     
-    print(df)
+    return(df)
 
 
-
-rmv(df, input('수정을 원하는 행 이름 선택 '), input('begin or end? '), input('original text: '))
-
+print(rmv(df, input('수정을 원하는 행 이름 선택 '), input('begin or end? '), input('original text: ')))
