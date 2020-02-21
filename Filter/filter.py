@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df = pd.read_csv(r'C:\Users\LEE Sunghyun\Desktop\NLP\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
+df = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
 
 def column_name(df):
     #첫 행 살리기

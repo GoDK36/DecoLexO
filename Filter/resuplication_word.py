@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df1 = pd.read_csv(r'C:\Users\LEE Sunghyun\Desktop\NLP\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
-df2 = pd.read_csv(r'C:\Users\LEE Sunghyun\Desktop\NLP\DecoLex_Test.csv',encoding = 'utf-8-sig')
+df1 = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
+df2 = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DecoLex_Test.csv',encoding = 'utf-8-sig')
 
 def column_name(df):
     #첫 행 살리기

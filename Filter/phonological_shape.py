@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df = pd.read_csv(r'C:\Users\LEE Sunghyun\Desktop\NLP\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
+df = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
 
 def column_name(df):
     #첫 행 살리기
@@ -229,7 +229,7 @@ def First_Syllable(df, a, b, c):
         elif a == '':
             #a: '', b: '.'
             if b == '.':
-                 #a: '', b: '.', c: ['*', '.', '', 'w']  
+                #a: '', b: '.', c: ['*', '.', '', 'w']  
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
@@ -248,7 +248,7 @@ def First_Syllable(df, a, b, c):
                         cnt += 1
             #a: '', b: ''    
             elif b == '':
-                 #a: '', b: '', c: ['*', '.', '', 'w']  
+                #a: '', b: '', c: ['*', '.', '', 'w']  
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
@@ -357,12 +357,12 @@ def First_Syllable(df, a, b, c):
             #.T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
             result = result.to_frame().T
             header = result.columns
-            result.to_csv('phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
             cnt += 1
         else:
             result = df.loc[i]
             result = result.to_frame().T
-            result.to_csv('phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
         
     print(cnt)
 
@@ -588,12 +588,12 @@ def Second_Syllable(df, a, b, c):
             #.T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
             result = result.to_frame().T
             header = result.columns
-            result.to_csv('phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
             cnt += 1
         else:
             result = df.loc[i]
             result = result.to_frame().T
-            result.to_csv('phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
 
     for i in indexlis:
         print(df.loc[i,'Lemma'])
@@ -815,12 +815,12 @@ def Second_to_Last_Syllable(df, a, b, c):
             #.T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
             result = result.to_frame().T
             header = result.columns
-            result.to_csv('phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
             cnt += 1
         else:
             result = df.loc[i]
             result = result.to_frame().T
-            result.to_csv('phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
     
     print(cnt)
 
@@ -1039,12 +1039,12 @@ def Last_Syllable(df, a, b, c):
             #.T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
             result = result.to_frame().T
             header = result.columns
-            result.to_csv('phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
+            result.to_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\exampler\E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', columns = header, index = False, encoding ='utf-8-sig') 
             cnt += 1
         else:
             result = df.loc[i]
             result = result.to_frame().T
-            result.to_csv('phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+            result.to_csv('E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\exampler\E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
     
     print(cnt)
 
@@ -1122,7 +1122,7 @@ for i in range(len(result)):
     if cnt == 0:
         copy = df
     else:
-        copy = pd.read_csv(r'C:\Users\LEE Sunghyun\Documents\Python Scripts\phonological_shape.csv',encoding = 'utf-8-sig')
+        copy = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\exampler\E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\phonological_shape.csv',encoding = 'utf-8-sig')
     
     if i == 0:
         if result[i] != 0:
