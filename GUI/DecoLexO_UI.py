@@ -118,107 +118,70 @@ def column_name(df):
 
     return df
 
-#입력받은 word와 같은 단어 정보들을 출력하는 함수
+
+# 입력받은 word와 같은 단어 정보들을 출력하는 함수
 def Equals(df, col, word):
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if df.loc[j,col] == word[i]:
-                answer  = df.iloc[j]
-            
-    #result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
-    #현재 row와 column이 바뀌어 저장되어 있기 때문에
-    #.T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
-    result = answer.to_frame().T
-    header = result.columns
-    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
+    if '+' in word:
+        word_list = word.split ('+')
+    else:
+        word_list = []
+        word_list.append (word)
+
+    for i in range (len (word_list)):
+        for j in range (len (df)):
+            if df.loc[j, col] == word_list[i]:
+                answer = df.iloc[j]
+
+    # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
+    # 현재 row와 column이 바뀌어 저장되어 있기 때문에
+    # .T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
+    result = answer.to_frame ().T
+    copy_df = result
+    print (copy_df)
+    return copy_df
 
 
-#입력받은 단어들이 포함되어 있는 단어 정보들을 출력하는 함수
+# 입력받은 단어들이 포함되어 있는 단어 정보들을 출력하는 함수
 def Contains(df, col, word):
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if word[i] in df.loc[j,col]:
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
-            
-            
-#입력받은 단어들로 시작하는 단어 정보들을 출력하는 함수
+    for i in range (len (word)):
+        for j in range (len (df)):
+            if word[i] in df.loc[j, col]:
+                result = df.iloc[j]
+                result = result.to_frame ().T
+                result.to_csv ('filter_result.csv', mode='a', header=False, index=False, encoding='utf-8-sig')
+
+            # 입력받은 단어들로 시작하는 단어 정보들을 출력하는 함수
+
+
 def Starts_With(df, col, word):
-    cnt = 0
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if df.loc[j,col].startswith(word[i]):
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
-            
+    for i in range (len (word)):
+        for j in range (len (df)):
+            if df.loc[j, col].startswith (word[i]):
+                result = df.iloc[j]
+                result = result.to_frame ().T
+                result.to_csv ('filter_result.csv', mode='a', header=False, index=False, encoding='utf-8-sig')
 
-#입력받은 단어들로 끝나는 단어 정보들을 출력하는 함수
+            # 입력받은 단어들로 끝나는 단어 정보들을 출력하는 하수
+
+
 def Ends_With(df, col, word):
+    for i in range (len (word)):
+        for j in range (len (df)):
+            if df.loc[j, col].endswith (word[i]):
+                result = df.iloc[j]
+                result = result.to_frame ().T
+                result.to_csv ('filter_result.csv', mode='a', header=False, index=False, encoding='utf-8-sig')
 
-    cnt = 0
-    
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if df.loc[j,col].endswith(word[i]):
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+            # 입력받은 단어들이 없는 단어 정보들을 출력하는 함수
 
-#입력받은 단어들이 없는 단어 정보들을 출력하는 함수
+
 def Is_Empty(df, col, word):
-    
-    cnt = 0
-    
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if word[i] not in df.loc[j,col]:
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
-
-#함수를 읽어 주는 함수
-def readFiles(new_tableWidget, df):
-        newdf = column_name (df)
-        new_tableWidget.setColumnCount (len (newdf.columns))
-        header = newdf.columns
-        new_tableWidget.setHorizontalHeaderLabels (header)
-        new_tableWidget.setRowCount (len (newdf.index))
-        for i in range (len (newdf.index)):
-            for j in range (len (newdf.columns)):
-                new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (newdf.iat[i, j])))
-
-        new_tableWidget.resizeColumnsToContents ()
-        new_tableWidget.resizeRowsToContents ()
+    for i in range (len (word)):
+        for j in range (len (df)):
+            if word[i] not in df.loc[j, col]:
+                result = df.iloc[j]
+                result = result.to_frame ().T
+                result.to_csv ('filter_result.csv', mode='a', header=False, index=False, encoding='utf-8-sig')
 
 
 class Ui_Deco_LexO (object):
@@ -356,7 +319,6 @@ class Ui_Deco_LexO (object):
         self.FShow_Button = QtWidgets.QPushButton (self.Modifying_Tab)
         self.FShow_Button.setGeometry (QtCore.QRect (110, 550, 75, 23))
         self.FShow_Button.setObjectName ("FShow_Button")
-        self.FShow_Button.clicked.connect(lambda parameter_list: self.openFiles())
         self.FClear_Button = QtWidgets.QPushButton (self.Modifying_Tab)
         self.FClear_Button.setGeometry (QtCore.QRect (210, 550, 75, 23))
         self.FClear_Button.setObjectName ("FClear_Button")
@@ -395,42 +357,9 @@ class Ui_Deco_LexO (object):
         self.label_5.setFont (font)
         self.label_5.setObjectName ("label_5")
         self.tabWidget_1.addTab (self.Modifying_Tab, "")
-        self.Edit_Tab = QtWidgets.QWidget ()
-        self.Edit_Tab.setObjectName ("Edit_Tab")
-        self.Add_radio = QtWidgets.QRadioButton(self.Edit_Tab)
-        self.Add_radio.setGeometry(QtCore.QRect(20, 40, 108, 19))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Add_radio.setFont(font)
-        self.Add_radio.setChecked(True)
-        self.Add_radio.setObjectName("Add_radio")
-        self.Add_radio.clicked.connect(self.edit_radio_function)
-        self.Remove_radio = QtWidgets.QRadioButton(self.Edit_Tab)
-        self.Remove_radio.setGeometry(QtCore.QRect(170, 40, 108, 19))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Remove_radio.setFont(font)
-        self.Remove_radio.setObjectName("Remove_radio")
-        self.Replace_radio = QtWidgets.QRadioButton(self.Edit_Tab)
-        self.Replace_radio.setGeometry(QtCore.QRect(20, 80, 108, 19))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Replace_radio.setFont(font)
-        self.Replace_radio.setObjectName("Replace_radio")
-        self.Irregular_radio = QtWidgets.QRadioButton(self.Edit_Tab)
-        self.Irregular_radio.setGeometry(QtCore.QRect(170, 80, 108, 19))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Irregular_radio.setFont(font)
-        self.Irregular_radio.setObjectName("Irregular_radio")
-
-        ##Radio connection##
-        self.Add_radio.clicked.connect(self.edit_radio_function)
-        self.Remove_radio.clicked.connect(self.edit_radio_function)
-        
-
-
-        self.tabWidget_1.addTab (self.Edit_Tab, "")
+        self.tab_2 = QtWidgets.QWidget ()
+        self.tab_2.setObjectName ("tab_2")
+        self.tabWidget_1.addTab (self.tab_2, "")
         self.gridLayout.addWidget (self.tabWidget_1, 0, 0, 1, 1)
         Deco_LexO.setCentralWidget (self.centralwidget)
         self.menubar = QtWidgets.QMenuBar (Deco_LexO)
@@ -477,7 +406,11 @@ class Ui_Deco_LexO (object):
         self.tabWidget_1.setCurrentIndex (0)
         QtCore.QMetaObject.connectSlotsByName (Deco_LexO)
 
+        self.FShow_Button.released.connect (lambda parameter_list: self.openFiles ())
+        self.FFiltering_Button.released.connect (self.filter_function)
+
     def retranslateUi(self, Deco_LexO):
+        # Entry, lemma, category, information을 입력하면 각각 statelis에 저장한다.
         _translate = QtCore.QCoreApplication.translate
         Deco_LexO.setWindowTitle (_translate ("Deco_LexO", "Deco-LexO"))
         self.dataFrame_Tab.setTabText (self.dataFrame_Tab.indexOf (self.tab), _translate ("Deco_LexO", "Tab 1"))
@@ -519,7 +452,7 @@ class Ui_Deco_LexO (object):
         self.label_4.setText (_translate ("Deco_LexO", "Information:"))
         self.label_5.setText (_translate ("Deco_LexO", "Phonological shape"))
         self.tabWidget_1.setTabText (self.tabWidget_1.indexOf (self.Modifying_Tab), _translate ("Deco_LexO", "Filter"))
-        self.tabWidget_1.setTabText (self.tabWidget_1.indexOf (self.Edit_Tab), _translate ("Deco_LexO", "Edit"))
+        self.tabWidget_1.setTabText (self.tabWidget_1.indexOf (self.tab_2), _translate ("Deco_LexO", "Edit"))
         self.menuFile.setTitle (_translate ("Deco_LexO", "File"))
         self.menuRecent_files.setTitle (_translate ("Deco_LexO", "Recent files"))
         self.menuHelp.setTitle (_translate ("Deco_LexO", "Help"))
@@ -534,15 +467,43 @@ class Ui_Deco_LexO (object):
         self.actionQuit.setShortcut (_translate ("Deco_LexO", "Ctrl+Q"))
         self.actionAcknowledgement.setText (_translate ("Deco_LexO", "Acknowledgement"))
         self.actionAbout_DecoLexO.setText (_translate ("Deco_LexO", "About DecoLexO"))
-        self.Add_radio.setText(_translate("Deco_LexO", "Add"))
-        self.Remove_radio.setText(_translate("Deco_LexO", "Remove"))
-        self.Replace_radio.setText(_translate("Deco_LexO", "Replace"))
-        self.Irregular_radio.setText(_translate("Deco_LexO", "Irregular"))
         self.actionOpen_file_s.triggered.connect (self.openFiles)
 
+    # 함수를 읽어 주느 함수
+    def readFiles(self, new_tableWidget, vis_df):
+        # self.new_tableWidget.setColumnCount (len (copy_df.columns))
+        # header = newdf.columns
+        # self.new_tableWidget.setHorizontalHeaderLabels (header)
+        # self.new_tableWidget.setRowCount (len (copy_df.index))
+        print (vis_df)
+        for i in range (len (vis_df.index)):
+            for j in range (len (vis_df.columns)):
+                self.new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
+
+        self.new_tableWidget.resizeColumnsToContents ()
+        self.new_tableWidget.resizeRowsToContents ()
+
+    def readFiles2(self, vis_df):
+        # self.new_tableWidget.setColumnCount (len (copy_df.columns))
+        # header = newdf.columns
+        # self.new_tableWidget.setHorizontalHeaderLabels (header)
+        # self.new_tableWidget.setRowCount (len (copy_df.index))
+        self.new_tableWidget.setColumnCount (0)
+        self.new_tableWidget.setRowCount (0)
+        self.new_tableWidget.setColumnCount (len (vis_df.columns))
+        header = vis_df.columns
+        self.new_tableWidget.setHorizontalHeaderLabels (header)
+        self.new_tableWidget.setRowCount (len (vis_df.index))
+        for i in range (len (vis_df.index)):
+            for j in range (len (vis_df.columns)):
+                self.new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
+
+        self.new_tableWidget.resizeColumnsToContents ()
+        self.new_tableWidget.resizeRowsToContents ()
+
     def openFiles(self):
+        global handle_df
         fname = QtWidgets.QFileDialog.getOpenFileName ()
-        print(fname)
         self.new_tab = QtWidgets.QWidget ()
         self.new_tab.setObjectName ("new_tab")
         self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
@@ -555,168 +516,45 @@ class Ui_Deco_LexO (object):
         self.dataFrame_Tab.addTab (self.new_tab, "")
         self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:])
         Ofileloc = str (fname).split ("', '")[0][2:]
-        #함수를 읽어 주는 함수
-        df = pd.read_csv (Ofileloc,encoding='utf-8-sig') 
-        readFiles (self.new_tableWidget, df)
+        # 함수를 읽어 주느 함수
+        original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
+        original_df = column_name (original_read)
+        handle_df = original_df.copy ()
+        self.new_tableWidget.setColumnCount (len (handle_df.columns))
+        header = original_df.columns
+        self.new_tableWidget.setHorizontalHeaderLabels (header)
+        self.new_tableWidget.setRowCount (len (handle_df.index))
+        self.readFiles (self.new_tableWidget, handle_df)
 
-    def edit_radio_function(self):
-        if self.Add_radio.isChecked():
-            self.Add_frame = QtWidgets.QFrame(self.Edit_Tab)
-            self.Add_frame.setGeometry(QtCore.QRect(10, 160, 301, 241))
-            self.Add_frame.setFrameShape(QtWidgets.QFrame.Box)
-            self.Add_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-            self.Add_frame.setObjectName("Add_frame")
-            self.Add_column = QtWidgets.QComboBox(self.Add_frame)
-            self.Add_column.setGeometry(QtCore.QRect(140, 60, 128, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Add_column.setFont(font)
-            self.Add_column.setEditable(True)
-            self.Add_column.setObjectName("Add_column")
-            self.Add_column.addItem("")
-            self.Add_column.setItemText(0, "")
-            self.Add_column.addItem("")
-            self.Add_column.addItem("")
-            self.Add_position = QtWidgets.QComboBox(self.Add_frame)
-            self.Add_position.setGeometry(QtCore.QRect(140, 110, 128, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Add_position.setFont(font)
-            self.Add_position.setObjectName("Add_position")
-            self.Add_position.addItem("")
-            self.Add_position.addItem("")
-            self.Add_newText = QtWidgets.QLineEdit(self.Add_frame)
-            self.Add_newText.setGeometry(QtCore.QRect(140, 160, 130, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Add_newText.setFont(font)
-            self.Add_newText.setAutoFillBackground(False)
-            self.Add_newText.setObjectName("Add_newText")
-            self.Add_start = QtWidgets.QPushButton(self.Add_frame)
-            self.Add_start.setGeometry(QtCore.QRect(180, 200, 93, 28))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Add_start.setFont(font)
-            self.Add_start.setObjectName("Add_start")
-            self.label_11 = QtWidgets.QLabel(self.Add_frame)
-            self.label_11.setGeometry(QtCore.QRect(10, 60, 111, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_11.setFont(font)
-            self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            self.label_11.setObjectName("label_11")
-            self.label_12 = QtWidgets.QLabel(self.Add_frame)
-            self.label_12.setGeometry(QtCore.QRect(10, 110, 111, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_12.setFont(font)
-            self.label_12.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            self.label_12.setObjectName("label_12")
-            self.label_13 = QtWidgets.QLabel(self.Add_frame)
-            self.label_13.setGeometry(QtCore.QRect(10, 160, 111, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_13.setFont(font)
-            self.label_13.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            self.label_13.setObjectName("label_13")
-            self.label_14 = QtWidgets.QLabel(self.Add_frame)
-            self.label_14.setGeometry(QtCore.QRect(0, 10, 301, 31))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_14.setFont(font)
-            self.label_14.setAlignment(QtCore.Qt.AlignCenter)
-            self.label_14.setObjectName("label_14")
-            _translate = QtCore.QCoreApplication.translate
-            self.Add_column.setItemText(1, _translate("Deco_LexO", "Lemma"))
-            self.Add_column.setItemText(2, _translate("Deco_LexO", "Category"))
-            self.Add_position.setItemText(0, _translate("Deco_LexO", "beginning"))
-            self.Add_position.setItemText(1, _translate("Deco_LexO", "ending"))
-            self.Add_start.setText(_translate("Deco_LexO", "OK"))
-            self.label_11.setText(_translate("Deco_LexO", "Column Name:"))
-            self.label_12.setText(_translate("Deco_LexO", "Position:"))
-            self.label_13.setText(_translate("Deco_LexO", "New Text:"))
-            self.label_14.setText(_translate("Deco_LexO", "Add Option"))
+    def filter_function(self):
+        # lemma에 pass를 입력하지 않으면
+        # state2에 출력하고 싶은 정보를 숫자로 입력하고
+        # 그 정보를 statelis에 숫자로 저장해준다.
+        # lemma_ele에는 단어 요소들을 저장해 주는데
+        # 여러 단어를 입력받을 시 + 로 붙여서 입력해주고
+        # split('+')을 통해 나누어준 상태로 저장해준다.
+        if self.FLemma_Input.text () != '':
+            if len (self.FLemma_Input.text ()) > 1:
+                self.FLemma_Input.text ().split ('+')
+            else:
+                pass
 
+        statelis = [0, 0, 0, 0]
+        FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
+        # statelis.insert(0, FComboDict[self.FEntryCombo.currentText()])
+        statelis.insert (1, FComboDict[self.FLemmaCombo.currentText ()])
+        if statelis[1] == 1:
+            filtered_df = Equals (handle_df, 'Lemma', self.FLemma_Input.text ())
+        if statelis[1] == 2:
+            Starts_With (handle_df, 'Lemma', self.FLemma_Input.text ())
+        if statelis[1] == 3:
+            Ends_With (handle_df, 'Lemma', self.FLemma_Input)
+        if statelis[1] == 4:
+            Contains (handle_df, 'Lemma', self.FLemma_Input)
+        if statelis[1] == 5:
+            Is_Empty (handle_df, 'Lemma', self.FLemma_Input)
 
-        ##edit remove frame##
-
-        elif self.Remove_radio.isChecked():
-            self.Remove_frame = QtWidgets.QFrame(self.Edit_Tab)
-            self.Remove_frame.setGeometry(QtCore.QRect(10, 160, 301, 241))
-            self.Remove_frame.setFrameShape(QtWidgets.QFrame.Box)
-            self.Remove_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-            self.Remove_frame.setObjectName("Remove_frame")
-            self.Remove_column = QtWidgets.QComboBox(self.Remove_frame)
-            self.Remove_column.setGeometry(QtCore.QRect(140, 60, 128, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Remove_column.setFont(font)
-            self.Remove_column.setEditable(True)
-            self.Remove_column.setObjectName("Remove_column")
-            self.Remove_column.addItem("")
-            self.Remove_column.setItemText(0, "")
-            self.Remove_column.addItem("")
-            self.Remove_column.addItem("")
-            self.Remove_position = QtWidgets.QComboBox(self.Remove_frame)
-            self.Remove_position.setGeometry(QtCore.QRect(140, 110, 128, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Remove_position.setFont(font)
-            self.Remove_position.setObjectName("Remove_position")
-            self.Remove_position.addItem("")
-            self.Remove_position.addItem("")
-            self.Remove_oldText = QtWidgets.QLineEdit(self.Remove_frame)
-            self.Remove_oldText.setGeometry(QtCore.QRect(140, 160, 130, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Remove_oldText.setFont(font)
-            self.Remove_oldText.setAutoFillBackground(False)
-            self.Remove_oldText.setObjectName("Remove_oldText")
-            self.Remove_start = QtWidgets.QPushButton(self.Remove_frame)
-            self.Remove_start.setGeometry(QtCore.QRect(180, 200, 93, 28))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.Remove_start.setFont(font)
-            self.Remove_start.setObjectName("Remove_start")
-            self.label_11 = QtWidgets.QLabel(self.Remove_frame)
-            self.label_11.setGeometry(QtCore.QRect(10, 60, 111, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_11.setFont(font)
-            self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            self.label_11.setObjectName("label_11")
-            self.label_12 = QtWidgets.QLabel(self.Remove_frame)
-            self.label_12.setGeometry(QtCore.QRect(10, 110, 111, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_12.setFont(font)
-            self.label_12.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            self.label_12.setObjectName("label_12")
-            self.label_13 = QtWidgets.QLabel(self.Remove_frame)
-            self.label_13.setGeometry(QtCore.QRect(10, 160, 111, 30))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_13.setFont(font)
-            self.label_13.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            self.label_13.setObjectName("label_13")
-            self.label_14 = QtWidgets.QLabel(self.Remove_frame)
-            self.label_14.setGeometry(QtCore.QRect(0, 10, 301, 31))
-            font = QtGui.QFont()
-            font.setFamily("Arial")
-            self.label_14.setFont(font)
-            self.label_14.setAlignment(QtCore.Qt.AlignCenter)
-            self.label_14.setObjectName("label_14")
-            _translate = QtCore.QCoreApplication.translate
-            self.Remove_column.setItemText(1, _translate("Deco_LexO", "Lemma"))
-            self.Remove_column.setItemText(2, _translate("Deco_LexO", "Category"))
-            self.Remove_position.setItemText(0, _translate("Deco_LexO", "beginning"))
-            self.Remove_position.setItemText(1, _translate("Deco_LexO", "ending"))
-            self.Remove_start.setText(_translate("Deco_LexO", "OK"))
-            self.label_11.setText(_translate("Deco_LexO", "Column Name:"))
-            self.label_12.setText(_translate("Deco_LexO", "Position:"))
-            self.label_13.setText(_translate("Deco_LexO", "Old Text:"))
-            self.label_14.setText(_translate("Deco_LexO", "Remove Option"))
-
+        self.readFiles2 (filtered_df)
 
 
 if __name__ == "__main__":
