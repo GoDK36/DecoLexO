@@ -128,9 +128,9 @@ def df2first(df,col):
 
 #시작 혹은 끝 부분을 검색하기
 def reg(loc,old_text):
-    if loc == 'begin':
+    if loc == 'beginning':
         regex = '^' + old_text
-    if loc == 'end':
+    if loc == 'ending':
         regex = old_text + '$'
     return(regex)
 

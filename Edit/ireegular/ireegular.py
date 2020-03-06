@@ -221,11 +221,11 @@ def irreg(df, jongsung, old_eomi, new_eomi):
 
     return(df)
 
-# jongsung = input('지우고 싶은 종성: ')
-# old_eomi = input('바꾸고 싶은 어미')
-# new_eomi = input('새로운 어미 ')
+jongsung = input('지우고 싶은 종성: ')
+old_eomi = input('바꾸고 싶은 어미')
+new_eomi = input('새로운 어미 ')
 
-# print(irreg(df, jongsung, old_eomi, new_eomi))
+print(irreg(df, jongsung, old_eomi, new_eomi))
 
 #####################################################
 #################irreg 함수의 단점####################

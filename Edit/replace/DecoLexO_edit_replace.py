@@ -210,7 +210,7 @@ if where == 'anywhere':
     anywhere_rpl(df, col, ori, new)
 if where == 'whole string':
     whole_rpl(df, col, ori, new)
-if where == 'begin':
+if where == 'beginning':
     begin_rpl(df, col, ori, new)
-if where == 'end':
+if where == 'ending':
     end_rpl(df, col, ori, new)

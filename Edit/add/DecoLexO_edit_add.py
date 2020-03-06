@@ -130,10 +130,10 @@ def df2first(df,col):
 def add(df, col, add_place, add_text):
     res = []
     first = df2first(df,col)
-    if add_place == 'begin':
+    if add_place == 'beginning':
         for x in first:
             res.append(add_text + x)
-    if add_place == 'end':
+    if add_place == 'ending':
         for x in first:
             res.append(x + add_text)   
     #열 추가
