@@ -11,6 +11,7 @@ import numpy as np
 import os, re
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+    ##Function Code##
 
 def column_name(df):
     # 첫 행 살리기
@@ -118,74 +119,168 @@ def column_name(df):
 
     return df
 
-#입력받은 word와 같은 단어 정보들을 출력하는 함수
+
+# 입력받은 word와 같은 단어 정보들을 출력하는 함수
 def Equals(df, col, word):
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if df.loc[j,col] == word[i]:
-                answer  = df.iloc[j]
-            
-    #result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
-    #현재 row와 column이 바뀌어 저장되어 있기 때문에
-    #.T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
-    result = answer.to_frame().T
-    header = result.columns
-    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
+
+    #입력받은 단어가 1개 이상일 때는 +로 묶여서 들어오기 때문에 입력받은 word에
+    # +가 있는지 확인후 존재하면 +단위로 나눈 단어들을 list 형태로 word_lsit에 저장해주고
+    # 단일 단어일 경우 그 단어 자체를 list형태로 word_list에 저장해준다. 
+    if '+' in word:
+        word_list = word.split ('+')
+    else:
+        word_list = []
+        word_list.append (word)
+
+    #filtered_list에는 찾고자하는 요소에 매칭되는 단어들을 저장할 것이고
+    #filtered_index에는 원본 데이터에 있는 찾은 단어의 인덱스를 저장할 것이다.
+    filtered_list = []
+    filtered_index = []
+
+    #i는 word_list에 저장된 단어의 개수를 길이로 설정하고
+    #j는 원본데이터의 행의 개수를 길이로 설정한다.
+    #df는 원본데이터, col은 찾고자 하는 정보(Lemma, Entry, Catgory..), word는 찾고자 하는 단어.
+    #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어가 일치하면
+    #answer에 일치 정보의 열을 통째로 저장해준다.
+    #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
+    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
+    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
+    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    for i in range (len (word_list)):
+        for j in range (len (df)):
+            if df.loc[j, col] == word_list[i]:
+                answer = df.iloc[j]
+                filtered_list.append(list(answer))
+                filtered_index.append(str(j+1))
+
+    # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
+    # 현재 row와 column이 바뀌어 저장되어 있기 때문에
+    # .T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
+    filtered_header = handle_df.columns.tolist()
+    filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
+    filtered_df.head()
+    filtered_df.insert(0,'Original Index', filtered_index)
+
+    return filtered_df
 
 
-#입력받은 단어들이 포함되어 있는 단어 정보들을 출력하는 함수
+# 입력받은 단어들이 포함되어 있는 단어 정보들을 출력하는 함수
 def Contains(df, col, word):
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if word[i] in df.loc[j,col]:
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
-            
-            
+    if '+' in word:
+            word_list = word.split ('+')
+    else:
+        word_list = []
+        word_list.append (word)
+    
+    #filtered_list에는 찾고자하는 요소에 매칭되는 단어들을 저장할 것이고
+    #filtered_index에는 원본 데이터에 있는 찾은 단어의 인덱스를 저장할 것이다.
+    filtered_list = []
+    filtered_index = []
+
+    #i는 word_list에 저장된 단어의 개수를 길이로 설정하고
+    #j는 원본데이터의 행의 개수를 길이로 설정한다.
+    #df는 원본데이터, col은 찾고자 하는 정보(Lemma, Entry, Catgory..), word는 찾고자 하는 단어.
+    #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어를 포함하면
+    #answer에 일치 정보의 열을 통째로 저장해준다.
+    #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
+    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
+    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
+    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    for i in range (len (word_list)):
+        for j in range (len (df)):
+            if word[i] in df.loc[j, col]:
+                result = df.iloc[j]
+                filtered_list.append(list(result))
+                filtered_index.append(str(j+1))
+
+    # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
+    # 현재 row와 column이 바뀌어 저장되어 있기 때문에
+    # .T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
+    filtered_header = handle_df.columns.tolist()
+    filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
+    filtered_df.head()
+    filtered_df.insert(0,'Original Index', filtered_index)
+
+    return filtered_df
+
 #입력받은 단어들로 시작하는 단어 정보들을 출력하는 함수
 def Starts_With(df, col, word):
-    cnt = 0
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if df.loc[j,col].startswith(word[i]):
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+    if '+' in word:
+            word_list = word.split ('+')
+    else:
+        word_list = []
+        word_list.append (word)
+    
+    #filtered_list에는 찾고자하는 요소에 매칭되는 단어들을 저장할 것이고
+    #filtered_index에는 원본 데이터에 있는 찾은 단어의 인덱스를 저장할 것이다.
+    filtered_list = []
+    filtered_index = []
+
+    #i는 word_list에 저장된 단어의 개수를 길이로 설정하고
+    #j는 원본데이터의 행의 개수를 길이로 설정한다.
+    #df는 원본데이터, col은 찾고자 하는 정보(Lemma, Entry, Catgory..), word는 찾고자 하는 단어.
+    #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어로 시작하면
+    #answer에 일치 정보의 열을 통째로 저장해준다.
+    #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
+    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
+    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
+    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    for i in range (len (word_list)):
+        for j in range (len (df)):
+            if df.loc[j, col].startswith (word[i]):
+                result = df.iloc[j]
+                filtered_list.append(list(result))
+                filtered_index.append(str(j+1))
             
+
+    # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
+    # 현재 row와 column이 바뀌어 저장되어 있기 때문에
+    # .T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
+    filtered_header = handle_df.columns.tolist()
+    filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
+    filtered_df.head()
+    filtered_df.insert(0,'Original Index', filtered_index)
+
+    return filtered_df
 
 #입력받은 단어들로 끝나는 단어 정보들을 출력하는 함수
 def Ends_With(df, col, word):
-
-    cnt = 0
+    if '+' in word:
+            word_list = word.split ('+')
+    else:
+        word_list = []
+        word_list.append (word)
     
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if df.loc[j,col].endswith(word[i]):
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
+    #filtered_list에는 찾고자하는 요소에 매칭되는 단어들을 저장할 것이고
+    #filtered_index에는 원본 데이터에 있는 찾은 단어의 인덱스를 저장할 것이다.
+    filtered_list = []
+    filtered_index = []
+
+    #i는 word_list에 저장된 단어의 개수를 길이로 설정하고
+    #j는 원본데이터의 행의 개수를 길이로 설정한다.
+    #df는 원본데이터, col은 찾고자 하는 정보(Lemma, Entry, Catgory..), word는 찾고자 하는 단어.
+    #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어로 끝나면
+    #answer에 일치 정보의 열을 통째로 저장해준다.
+    #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
+    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
+    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
+    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    for i in range (len (word)):
+        for j in range (len (df)):
+            if df.loc[j, col].endswith (word[i]):
+                result = df.iloc[j]
+                filtered_list.append(list(result))
+                filtered_index.append(str(j+1))
+
+    # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
+    # 현재 row와 column이 바뀌어 저장되어 있기 때문에
+    # .T로 transepose() 기능을 주어 row와 column을 바꾸어 준다.
+    filtered_header = handle_df.columns.tolist()
+    filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
+    filtered_df.head()
+    filtered_df.insert(0,'Original Index', filtered_index)
+
+    return filtered_df
 
 #입력받은 단어들이 없는 단어 정보들을 출력하는 함수
 def Is_Empty(df, col, word):
@@ -219,6 +314,289 @@ def readFiles(new_tableWidget, df):
 
         new_tableWidget.resizeColumnsToContents ()
         new_tableWidget.resizeRowsToContents ()
+
+#편집을 원하는 행을 리스트화 하는 함수
+#df에는 불러온 데이터프레임을 넣고 col에는 수정 원하는 행 이름을 삽입
+def df2first(df,col):
+    col_first = list(df.columns)
+    x = col_first.index(col)
+    res = df.iloc[:,x:x+1].values.tolist()
+    res = sum(res,[])
+    return res
+
+#Edit section 
+
+#add 기능 함수   
+def add(df, col, add_place, add_text):
+    res = []
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    if add_place == 'beginning':
+        for x in first:
+            res.append(add_text + x)
+    if add_place == 'ending':
+        for x in first:
+            res.append(x + add_text)   
+    #열 추가
+    del df[col]
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+    
+    return(df)
+
+##Remove 함수
+
+##필요한 함수
+#시작 혹은 끝 부분을 검색하기
+def reg(loc,old_text):
+    if loc == 'beginning':
+        regex = '^' + old_text
+    if loc == 'ending':
+        regex = old_text + '$'
+    return(regex)
+
+#remove 메인 함수   
+def rmv(df,col, regex, old_text):
+    res = []
+    k = re.compile(reg(regex, old_text))
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    for x in first:
+        first = k.sub('',x)
+        res.append(first)
+        
+    #열 추가
+    del df[col]
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+    
+    return(df)
+
+#Replace 함수
+
+#whole string replace 함수
+
+def whole_rpl(df, col, original_text, new_text):
+    res = []
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    #whole_string에서 replace
+    for x in first:
+        if x == original_text:
+            x = x.replace(original_text, new_text)
+            res.append(x)
+        else:
+            res.append(x)
+    #열 추가
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+    
+    return(df)
+
+
+##anywhere replace 함수
+
+def anywhere_rpl(df, col, original_text, new_text):
+    res = []
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    #anywhere에서 replace
+    for x in first:
+        y = re.sub(original_text, new_text, x)
+        res.append(y)
+        
+    #열 추가
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+    
+    return(df)
+
+##begin replace 함수
+
+def begin_rpl(df, col, original_text, new_text):
+    res = []
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    #begin에서 replace
+    for x in first:
+        y = re.sub(r'^' + original_text, new_text, x)
+        res.append(y)
+        
+    #열 추가
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+    
+    return(df)
+
+##end replace 함수
+
+def end_rpl(df, col, original_text, new_text):
+    res = []
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    #end에서 replace
+    for x in first:
+        y = re.sub(original_text + '$', new_text, x)
+        res.append(y)
+        
+    #열 추가
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+    
+    return(df)
+
+##Irregular 함수
+
+#필요한 함수
+
+#자모음 분리하는 함수
+
+# 초성 리스트. 00 ~ 18
+initial = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+# 중성 리스트. 00 ~ 20
+mid = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+# 종성 리스트. 00 ~ 27 + 1(1개 없음)
+final = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+
+def Divide(korean_word):
+    global initial
+    global mid
+    global final
+
+    r_lst = []
+    for w in list(korean_word.strip()):
+        ## 영어인 경우 구분해서 작성함. 
+        if '가'<=w<='힣':
+            ## 588개 마다 초성이 바뀜. 
+            ch1 = (ord(w) - ord('가'))//588
+            ## 중성은 총 28가지 종류
+            ch2 = ((ord(w) - ord('가')) - (588*ch1)) // 28
+            ch3 = (ord(w) - ord('가')) - (588*ch1) - 28*ch2
+            r_lst.append([initial[ch1], mid[ch2], final[ch3]])
+        else:
+            r_lst.append([w])
+    return r_lst
+
+#자모음 다시 합치는 함수
+def jaso_combi(a, b, c):
+    global initial
+    global mid
+    global final
+
+
+    ini_ord = initial.index(a)*(21*28)
+    mid_ord = mid.index(b)*28
+    final_ord = final.index(c)
+    wansung = ini_ord + mid_ord + final_ord + 44032
+    wansung = chr(wansung)
+    
+    return wansung
+
+#끝음절 replace 함수 (어미 바꾸기 용)
+def end_rpl(df, col, original_text, new_text):
+    res = []
+    first = df2first(df,col)
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+    #end에서 replace
+    for x in first:
+        y = re.sub(original_text + '$', new_text, x)
+        res.append(y)
+        
+    #열 추가
+    df[col] = res
+    
+    #열 위치 재정렬
+    df = df[col_nme]
+
+    return(df)
+
+#irreg 메인 함수
+def irreg(df, jongsung, old_eomi, new_eomi):
+    
+    #자모음 분리하고 리스트화
+    lem = df2first(df, 'Lemma')
+
+    #column 이름 리스트화(나중에 재정렬용)
+    col_nme = df.columns.tolist()
+
+    divided_lst = []
+    for x in lem:
+        d_lst = list(Divide(str(x)))
+        divided_lst.append(d_lst)
+
+    #원하는 종성 삭제하기
+    for x in divided_lst:
+        if len(x) >= 2:
+            if x[-2][2] == str(jongsung):
+                x[-2][2] = ' '
+            else:
+                continue
+        else:
+            continue
+    
+    #자모음 다시 합치기
+    w_lst = []
+    for x in divided_lst:
+        p_lst = []
+        for y in x:
+            k = jaso_combi(y[0], y[1], y[2])
+            p_lst.append(k)
+            word = "".join(p_lst)
+        w_lst.append(word)
+
+    #열 추가
+    df['Lemma'] = w_lst
+
+    #열 위치 재정렬
+    df = df[col_nme]
+
+    #어미 바꾸기
+    end_rpl(df, 'Lemma', old_eomi, new_eomi)
+
+    return(df)
+
+##Row action 함수
+
+##행 추가
+
+def addrow(df):
+    df.loc[len(df)] = np.nan
+    return df
+
+##행 삭제
+
+def delrow(df):
+    res_df = df.drop(len(df)-1,0)
+    return res_df
+
+
+##행 복제
+
+def duprow(df, sel):
+    # sel = input('복제를 원하는 행 번호: ')
+    res_df = df.append(df.iloc[int(sel)], ignore_index = True)
+    ##특정 행을 클릭하는것을 어떻게 나타내는지??
+    return(res_df)
+
 
 
 class Ui_Deco_LexO (object):
@@ -422,6 +800,12 @@ class Ui_Deco_LexO (object):
         self.Edit_function_tab.setFont(font)
         self.Edit_function_tab.setObjectName("Edit_function_tab")
         self.Add_tab = QtWidgets.QWidget()
+
+
+        ###Edit Section###
+        
+                ###Add tab###
+
         self.Add_tab.setObjectName("Add_tab")
         self.Add_column = QtWidgets.QComboBox(self.Add_tab)
         self.Add_column.setGeometry(QtCore.QRect(150, 80, 128, 30))
@@ -484,6 +868,10 @@ class Ui_Deco_LexO (object):
         self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_11.setObjectName("label_11")
         self.Edit_function_tab.addTab(self.Add_tab, "")
+
+
+                ####Remove tab#####
+
         self.Remove_tab = QtWidgets.QWidget()
         self.Remove_tab.setObjectName("Remove_tab")
         self.label_15 = QtWidgets.QLabel(self.Remove_tab)
@@ -547,6 +935,10 @@ class Ui_Deco_LexO (object):
         self.Remove_start.setFont(font)
         self.Remove_start.setObjectName("Remove_start")
         self.Edit_function_tab.addTab(self.Remove_tab, "")
+
+
+                ####Replace Tab#####
+
         self.Replace_tab = QtWidgets.QWidget()
         self.Replace_tab.setObjectName("Replace_tab")
         self.Replace_column = QtWidgets.QComboBox(self.Replace_tab)
@@ -615,6 +1007,10 @@ class Ui_Deco_LexO (object):
         self.label_23.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_23.setObjectName("label_23")
         self.Edit_function_tab.addTab(self.Replace_tab, "")
+        
+
+                ####Irregular tab#####
+
         self.Irreg_tab = QtWidgets.QWidget()
         self.Irreg_tab.setObjectName("Irreg_tab")
         self.Irreg_cons = QtWidgets.QLineEdit(self.Irreg_tab)
@@ -661,6 +1057,8 @@ class Ui_Deco_LexO (object):
         self.label_27.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_27.setObjectName("label_27")
         self.Edit_function_tab.addTab(self.Irreg_tab, "")
+
+
         self.tabWidget_1.addTab(self.Edit_Tab, "")
         self.gridLayout.addWidget(self.tabWidget_1, 0, 0, 1, 1)
         self.dataFrame_Tab = QtWidgets.QTabWidget(self.centralwidget)
@@ -767,6 +1165,15 @@ class Ui_Deco_LexO (object):
         self.tabWidget_1.setCurrentIndex (0)
         QtCore.QMetaObject.connectSlotsByName (Deco_LexO)
 
+        ##connenct code##
+        self.Add_start.released.connect(self.add_function)
+        self.Remove_start.released.connect(self.remove_function)
+        self.Replace_start.released.connect(self.replace_function)
+        self.Irreg_start.released.connect(self.irregular_function)
+        self.Push_addrow.released.connect(self.add_row_function)
+        self.Push_Deleterow.released.connect(self.delete_row_function)
+        
+
     def retranslateUi(self, Deco_LexO):
         _translate = QtCore.QCoreApplication.translate
         Deco_LexO.setWindowTitle (_translate ("Deco_LexO", "Deco-LexO"))
@@ -868,9 +1275,32 @@ class Ui_Deco_LexO (object):
         self.actionAbout_DecoLexO.setText (_translate ("Deco_LexO", "About DecoLexO"))
         self.actionOpen_file_s.triggered.connect (self.openFiles)
 
+# 함수를 읽어 주느 함수
+    def readFiles(self, new_tableWidget, vis_df):
+        for i in range (len (vis_df.index)):
+            for j in range (len (vis_df.columns)):
+                self.new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
+
+        self.new_tableWidget.resizeColumnsToContents ()
+        self.new_tableWidget.resizeRowsToContents ()
+
+    def readFiles2(self, vis_df):
+        self.new_tableWidget.setColumnCount (0)
+        self.new_tableWidget.setRowCount (0)
+        self.new_tableWidget.setColumnCount (len (vis_df.columns))
+        header = vis_df.columns
+        self.new_tableWidget.setHorizontalHeaderLabels (header)
+        self.new_tableWidget.setRowCount (len (vis_df.index))
+        for i in range (len (vis_df.index)):
+            for j in range (len (vis_df.columns)):
+                self.new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
+
+        self.new_tableWidget.resizeColumnsToContents ()
+        self.new_tableWidget.resizeRowsToContents ()
+
     def openFiles(self):
+        global handle_df
         fname = QtWidgets.QFileDialog.getOpenFileName ()
-        print(fname)
         self.new_tab = QtWidgets.QWidget ()
         self.new_tab.setObjectName ("new_tab")
         self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
@@ -883,9 +1313,214 @@ class Ui_Deco_LexO (object):
         self.dataFrame_Tab.addTab (self.new_tab, "")
         self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:])
         Ofileloc = str (fname).split ("', '")[0][2:]
-        #함수를 읽어 주는 함수
-        df = pd.read_csv (Ofileloc,encoding='utf-8-sig') 
-        readFiles (self.new_tableWidget, df)
+        # 함수를 읽어 주느 함수
+        original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
+        self.original_df = column_name (original_read)
+        handle_df = self.original_df.copy ()
+        self.new_tableWidget.setColumnCount (len (handle_df.columns))
+        header = self.original_df.columns
+        self.new_tableWidget.setHorizontalHeaderLabels (header)
+        self.new_tableWidget.setRowCount (len (handle_df.index))
+        self.readFiles (self.new_tableWidget, handle_df)
+
+    def filter_function(self):
+        
+        #Lemma에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
+        if self.FLemma_Input.text () != '':
+            statelis = [0]
+            FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
+            #LemmaCombo박스에 선택된 것을 보고 Equal, start, End, contain, empty를 판별하여
+            # 해당 단어의 value값을 statelis에 넣어준다.  
+            statelis.insert (0, FComboDict[self.FLemmaCombo.currentText ()])
+
+            #statelis에 있는 value값에 따라 해당 코드를 실행시켜준다.
+            if statelis[0] == 1:
+                filtered_df = Equals (handle_df, 'Lemma', self.FLemma_Input.text ())
+            if statelis[0] == 2:
+                filtered_df = Starts_With (handle_df, 'Lemma', self.FLemma_Input.text ())
+            if statelis[0] == 3:
+                filtered_df = Ends_With (handle_df, 'Lemma', self.FLemma_Input.text())
+            if statelis[0] == 4:
+                filtered_df = Contains (handle_df, 'Lemma', self.FLemma_Input.text())
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (handle_df, 'Lemma', self.FLemma_Input.text())
+
+            self.readFiles2 (filtered_df)
+        
+        #Entry에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
+        if self.FEntry_Input.text () != '':
+            statelis = [0]
+            FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
+            statelis.insert (0, FComboDict[self.FEntryCombo.currentText ()])
+            
+            if statelis[0] == 1:
+                filtered_df = Equals (handle_df, 'Entry', self.FEntry_Input.text ())
+            if statelis[0] == 2:
+                filtered_df = Starts_With (handle_df, 'Entry', self.FEntry_Input.text ())
+            if statelis[0] == 3:
+                filtered_df = Ends_With (handle_df, 'Entry', self.FEntry_Input.text())
+            if statelis[0] == 4:
+                filtered_df = Contains (handle_df, 'Entry', self.FEntry_Input.text())
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (handle_df, 'Entry', self.FEntry_Input.text())
+
+            self.readFiles2 (filtered_df)
+        
+
+        #Category에 원하는 정보가 들어왔을 때 실행되는 코드
+        if self.FCate_Input.text () != '':
+            statelis = [0]
+            FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
+            statelis.insert (0, FComboDict[self.FCateCombo.currentText ()])
+            
+            if statelis[0] == 1:
+                filtered_df = Equals (handle_df, 'Category', self.FCate_Input.text ())
+            if statelis[0] == 2:
+                filtered_df = Starts_With (handle_df, 'Category', self.FCate_Input.text ())
+            if statelis[0] == 3:
+                filtered_df = Ends_With (handle_df, 'Category', self.FCate_Input.text())
+            if statelis[0] == 4:
+                filtered_df = Contains (handle_df, 'Category', self.FCate_Input.text())
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (handle_df, 'Category', self.FCate_Input.text())
+
+            self.readFiles2 (filtered_df)
+        
+        if self.FInfo_Input.text () != '':
+            statelis = [0]
+            FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
+            statelis.insert (0, FComboDict[self.FLemmaCombo.currentText ()])
+            
+            if statelis[0] == 1:
+                filtered_df = Equals (handle_df, 'Lemma', self.FLemma_Input.text ())
+            if statelis[0] == 2:
+                filtered_df = Starts_With (handle_df, 'Lemma', self.FLemma_Input.text ())
+            if statelis[0] == 3:
+                filtered_df = Ends_With (handle_df, 'Lemma', self.FLemma_Input.text())
+            if statelis[0] == 4:
+                filtered_df = Contains (handle_df, 'Lemma', self.FLemma_Input.text())
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (handle_df, 'Lemma', self.FLemma_Input.text())
+
+            self.readFiles2 (filtered_df)
+
+    #show버튼을 누르면 원본 데이터를 보여주는 함수
+    def show_all(self):
+        self.readFiles2 (self.original_df)
+
+
+    def phonological_shape(self):
+
+        if self.FFirst_1.text() != '' or self.FFirst_2.text() != '' or self.FFirst_3.text() != '':
+            handle_df = First_Syllable(handle_df, self.FFirst_1.text(), self.FFirst_2.text(), self.FFirst_3.text())
+
+            self.readFiles2 (handle_df)
+        
+        if self.FSec_1.text() != '' or self.FSec_2.text() != '' or self.FSec_3.text() != '':
+            handle_df = Second_Syllable(handle_df, self.FSec_1.text(), self.FSec_2.text(), self.FSec_3.text())
+
+            self.readFiles2 (handle_df)
+        
+        if self.FSecL_1.text() != '' or self.FSecL_2.text() != '' or self.FSecL_3.text() != '':
+            handle_df = Second_to_Last_Syllable(handle_df, self.FSecL_1.text(), self.FSecL_2.text(), self.FSecL_3.text())
+
+            self.readFiles2 (handle_df)
+        
+        if self.FLast_1.text() != '' or self.FLast_2.text() != '' or self.FLast_3.text() != '':
+            handle_df = Last_Syllable(handle_df, self.FLast_1.text(), self.FLast_2.text(), self.FLast_3.text())
+
+            self.readFiles2 (handle_df)
+
+    ######################
+    ##Edit Function 함수##
+    ######################
+
+
+    #Add function에서 ok를 누르면 실행될 함수
+
+    def add_function(self):
+        global handle_df
+
+        ##입력값 텍스트화
+        add_col_txt = str(self.Add_column.currentText())  ##combobox는 currentText()사용
+        add_pos_txt = str(self.Add_position.currentText())
+        add_new_txt = str(self.Add_oldText.text())
+        handle_df = add(handle_df, add_col_txt, add_pos_txt, add_new_txt) ##새로운 변수에 저장하기
+        #     handle_df,#handledf(작엊창에 떠있는 데이터프레임),
+        #     self.Add_column.text(),
+        #     self.Add_position.text(),
+        #     self.Add_oldText.text()
+        # )
+
+        self.readFiles2 (handle_df) ##readfiles함수에 넣으면 나타남.    
+
+    #Remove Function에서 ok를 누르면 실행될 함수
+
+    def remove_function(self):
+        global handle_df
+
+        ##입력값 텍스트화
+        rem_col_txt = str(self.Remove_column.currentText())
+        rem_pos_txt = str(self.Remove_position.currentText())
+        rem_old_txt = str(self.Remove_oldText.text())
+        
+        handle_df = rmv(handle_df, rem_col_txt, rem_pos_txt, rem_old_txt)
+
+        self.readFiles2 (handle_df)
+
+    #Replace Function에서 ok를 누르면 실행될 함수
+    
+    def replace_function(self):
+        global handle_df
+
+        ##입력값 텍스트화
+        rep_col_txt = str(self.Replace_column.currentText())
+        rep_pos_txt = str(self.Replace_position.currentText())
+        rep_old_txt = str(self.Replace_oldtext.text())
+        rep_new_txt = str(self.Replace_newtext.text())
+        
+        if rep_pos_txt == 'anywhere':
+            handle_df = anywhere_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+        if rep_pos_txt == 'whole string':
+            handle_df = whole_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+        if rep_pos_txt == 'beginning':
+            handle_df = begin_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+        if rep_pos_txt == 'ending':
+            handle_df = end_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+
+        self.readFiles2(handle_df)
+
+    #Replace Function에서 ok를 누르면 실행될 함수
+
+    def irregular_function(self):
+        global handle_df
+
+        fin_con_txt = str(self.Irreg_cons.text())
+        old_inf_txt = str(self.Irreg_oldinflec.text())
+        new_inf_txt = str(self.irreg_newinflec.text())
+
+        handle_df = irreg(handle_df, fin_con_txt, old_inf_txt, new_inf_txt)
+
+        self.readFiles2(handle_df)
+
+    ##Add row 버튼을 누르면 실행될 함수
+
+    def add_row_function(self):
+        global handle_df
+
+        handle_df = addrow(handle_df)
+
+        self.readFiles2(handle_df)
+
+    ##Delete row 버튼을 누르면 실행될 함수
+
+    def delete_row_function(self):
+        global handle_df
+
+        handle_df = delrow(handle_df)
+        
+        self.readFiles2(handle_df)
+
 
 
 if __name__ == "__main__":
