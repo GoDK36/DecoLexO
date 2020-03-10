@@ -1240,7 +1240,7 @@ class Ui_Deco_LexO (object):
         self.Remove_start.setText(_translate("Deco_LexO", "OK"))
         self.Edit_function_tab.setTabText(self.Edit_function_tab.indexOf(self.Remove_tab), _translate("Deco_LexO", "Remove"))
         self.Replace_column.setItemText(1, _translate("Deco_LexO", "Lemma"))
-        self.Replace_column.setItemText(2, _translate("Deco_LexO", "Column"))
+        self.Replace_column.setItemText(2, _translate("Deco_LexO", "Category"))
         self.Replace_position.setItemText(0, _translate("Deco_LexO", "anywhere"))
         self.Replace_position.setItemText(1, _translate("Deco_LexO", "whole string"))
         self.Replace_position.setItemText(2, _translate("Deco_LexO", "beginning"))
