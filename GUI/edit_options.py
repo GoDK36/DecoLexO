@@ -1,259 +1,116 @@
-######Edit Add#######
+##########################################
+##########################################
+##########################################
 
-        self.Add_frame = QtWidgets.QFrame(self.Edit_Tab)
-        self.Add_frame.setGeometry(QtCore.QRect(10, 160, 301, 241))
-        self.Add_frame.setFrameShape(QtWidgets.QFrame.Box)
-        self.Add_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.Add_frame.setObjectName("Add_frame")
-        self.Add_column = QtWidgets.QComboBox(self.Add_frame)
-        self.Add_column.setGeometry(QtCore.QRect(140, 60, 128, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Add_column.setFont(font)
-        self.Add_column.setEditable(True)
-        self.Add_column.setObjectName("Add_column")
-        self.Add_column.addItem("")
-        self.Add_column.setItemText(0, "")
-        self.Add_column.addItem("")
-        self.Add_column.addItem("")
-        self.Add_position = QtWidgets.QComboBox(self.Add_frame)
-        self.Add_position.setGeometry(QtCore.QRect(140, 110, 128, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Add_position.setFont(font)
-        self.Add_position.setObjectName("Add_position")
-        self.Add_position.addItem("")
-        self.Add_position.addItem("")
-        self.Add_newText = QtWidgets.QLineEdit(self.Add_frame)
-        self.Add_newText.setGeometry(QtCore.QRect(140, 160, 130, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Add_newText.setFont(font)
-        self.Add_newText.setAutoFillBackground(False)
-        self.Add_newText.setObjectName("Add_newText")
-        self.Add_start = QtWidgets.QPushButton(self.Add_frame)
-        self.Add_start.setGeometry(QtCore.QRect(180, 200, 93, 28))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Add_start.setFont(font)
-        self.Add_start.setObjectName("Add_start")
-        self.label_11 = QtWidgets.QLabel(self.Add_frame)
-        self.label_11.setGeometry(QtCore.QRect(10, 60, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_11.setFont(font)
-        self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_11.setObjectName("label_11")
-        self.label_12 = QtWidgets.QLabel(self.Add_frame)
-        self.label_12.setGeometry(QtCore.QRect(10, 110, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_12.setFont(font)
-        self.label_12.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_12.setObjectName("label_12")
-        self.label_13 = QtWidgets.QLabel(self.Add_frame)
-        self.label_13.setGeometry(QtCore.QRect(10, 160, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_13.setFont(font)
-        self.label_13.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_13.setObjectName("label_13")
-        self.label_14 = QtWidgets.QLabel(self.Add_frame)
-        self.label_14.setGeometry(QtCore.QRect(0, 10, 301, 31))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_14.setFont(font)
-        self.label_14.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_14.setObjectName("label_14")
 
-####Edit Remove####
+        ##connenct code##
+        self.Add_start.released.connect(self.add_function)
+        self.Remove_start.released.connect(self.remove_function)
+        self.Replace_start.released.connect(self.replace_function)
+        self.Irreg_start.released.connect(self.irregular_function)
+        self.Push_addrow.released.connect(self.add_row_function)
+        self.Push_Deleterow.released.connect(self.delete_row_function)
+        self.Push_Duplicaterow.released.connect(self.duplicate_row_function)
 
-        self.Remove_frame = QtWidgets.QFrame(self.Edit_Tab)
-        self.Remove_frame.setGeometry(QtCore.QRect(10, 160, 301, 241))
-        self.Remove_frame.setFrameShape(QtWidgets.QFrame.Box)
-        self.Remove_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.Remove_frame.setObjectName("Remove_frame")
-        self.Remove_column = QtWidgets.QComboBox(self.Remove_frame)
-        self.Remove_column.setGeometry(QtCore.QRect(140, 60, 128, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Remove_column.setFont(font)
-        self.Remove_column.setEditable(True)
-        self.Remove_column.setObjectName("Remove_column")
-        self.Remove_column.addItem("")
-        self.Remove_column.setItemText(0, "")
-        self.Remove_column.addItem("")
-        self.Remove_column.addItem("")
-        self.Remove_position = QtWidgets.QComboBox(self.Remove_frame)
-        self.Remove_position.setGeometry(QtCore.QRect(140, 110, 128, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Remove_position.setFont(font)
-        self.Remove_position.setObjectName("Remove_position")
-        self.Remove_position.addItem("")
-        self.Remove_position.addItem("")
-        self.Remove_oldText = QtWidgets.QLineEdit(self.Remove_frame)
-        self.Remove_oldText.setGeometry(QtCore.QRect(140, 160, 130, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Remove_oldText.setFont(font)
-        self.Remove_oldText.setAutoFillBackground(False)
-        self.Remove_oldText.setObjectName("Remove_oldText")
-        self.Remove_start = QtWidgets.QPushButton(self.Remove_frame)
-        self.Remove_start.setGeometry(QtCore.QRect(180, 200, 93, 28))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Remove_start.setFont(font)
-        self.Remove_start.setObjectName("Remove_start")
-        self.label_11 = QtWidgets.QLabel(self.Remove_frame)
-        self.label_11.setGeometry(QtCore.QRect(10, 60, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_11.setFont(font)
-        self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_11.setObjectName("label_11")
-        self.label_12 = QtWidgets.QLabel(self.Remove_frame)
-        self.label_12.setGeometry(QtCore.QRect(10, 110, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_12.setFont(font)
-        self.label_12.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_12.setObjectName("label_12")
-        self.label_13 = QtWidgets.QLabel(self.Remove_frame)
-        self.label_13.setGeometry(QtCore.QRect(10, 160, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_13.setFont(font)
-        self.label_13.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_13.setObjectName("label_13")
-        self.label_14 = QtWidgets.QLabel(self.Remove_frame)
-        self.label_14.setGeometry(QtCore.QRect(0, 10, 301, 31))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_14.setFont(font)
-        self.label_14.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_14.setObjectName("label_14")
 
-####Edit Replace#####
 
-        self.Replace_frame = QtWidgets.QFrame(self.Edit_Tab)
-        self.Replace_frame.setGeometry(QtCore.QRect(10, 160, 301, 280))
-        self.Replace_frame.setFrameShape(QtWidgets.QFrame.Box)
-        self.Replace_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.Replace_frame.setObjectName("Replace_frame")
-        self.label_14 = QtWidgets.QLabel(self.Replace_frame)
-        self.label_14.setGeometry(QtCore.QRect(0, 10, 301, 31))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_14.setFont(font)
-        self.label_14.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_14.setObjectName("label_14")
-        self.Replace_column = QtWidgets.QComboBox(self.Replace_frame)
-        self.Replace_column.setGeometry(QtCore.QRect(140, 50, 130, 30))
-        self.Replace_column.setEditable(True)
-        self.Replace_column.setObjectName("Replace_column")
-        self.Replace_column.addItem("")
-        self.Replace_column.setItemText(0, "")
-        self.Replace_column.addItem("")
-        self.Replace_column.addItem("")
-        self.Replace_position = QtWidgets.QComboBox(self.Replace_frame)
-        self.Replace_position.setGeometry(QtCore.QRect(140, 100, 130, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Replace_position.setFont(font)
-        self.Replace_position.setObjectName("Replace_position")
-        self.Replace_position.addItem("")
-        self.Replace_position.addItem("")
-        self.Replace_position.addItem("")
-        self.Replace_position.addItem("")
-        self.Replace_oldtext = QtWidgets.QLineEdit(self.Replace_frame)
-        self.Replace_oldtext.setGeometry(QtCore.QRect(140, 150, 133, 30))
-        self.Replace_oldtext.setObjectName("Replace_oldtext")
-        self.Replace_newtext = QtWidgets.QLineEdit(self.Replace_frame)
-        self.Replace_newtext.setGeometry(QtCore.QRect(140, 200, 133, 30))
-        self.Replace_newtext.setObjectName("Replace_newtext")
-        self.Replace_start = QtWidgets.QPushButton(self.Replace_frame)
-        self.Replace_start.setGeometry(QtCore.QRect(200, 240, 93, 28))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Replace_start.setFont(font)
-        self.Replace_start.setObjectName("Replace_start")
-        self.label_11 = QtWidgets.QLabel(self.Replace_frame)
-        self.label_11.setGeometry(QtCore.QRect(10, 50, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_11.setFont(font)
-        self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_11.setObjectName("label_11")
-        self.label_12 = QtWidgets.QLabel(self.Replace_frame)
-        self.label_12.setGeometry(QtCore.QRect(10, 100, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_12.setFont(font)
-        self.label_12.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_12.setObjectName("label_12")
-        self.label_13 = QtWidgets.QLabel(self.Replace_frame)
-        self.label_13.setGeometry(QtCore.QRect(10, 150, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_13.setFont(font)
-        self.label_13.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_13.setObjectName("label_13")
-        self.label_15 = QtWidgets.QLabel(self.Replace_frame)
-        self.label_15.setGeometry(QtCore.QRect(10, 200, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_15.setFont(font)
-        self.label_15.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_15.setObjectName("label_15")
+    ######################
+    ##Edit Function 함수##
+    ######################
 
-#####Edit Irregular#####
 
-        self.Irreg_frame = QtWidgets.QFrame(self.Edit_Tab)
-        self.Irreg_frame.setGeometry(QtCore.QRect(10, 160, 301, 241))
-        self.Irreg_frame.setFrameShape(QtWidgets.QFrame.Box)
-        self.Irreg_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.Irreg_frame.setObjectName("Irreg_frame")
-        self.label_14 = QtWidgets.QLabel(self.Irreg_frame)
-        self.label_14.setGeometry(QtCore.QRect(0, 10, 301, 31))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_14.setFont(font)
-        self.label_14.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_14.setObjectName("label_14")
-        self.Irreg_cons = QtWidgets.QLineEdit(self.Irreg_frame)
-        self.Irreg_cons.setGeometry(QtCore.QRect(140, 60, 130, 30))
-        self.Irreg_cons.setObjectName("Irreg_cons")
-        self.Irreg_oldinflec = QtWidgets.QLineEdit(self.Irreg_frame)
-        self.Irreg_oldinflec.setGeometry(QtCore.QRect(140, 110, 130, 30))
-        self.Irreg_oldinflec.setObjectName("Irreg_oldinflec")
-        self.irreg_newinflec = QtWidgets.QLineEdit(self.Irreg_frame)
-        self.irreg_newinflec.setGeometry(QtCore.QRect(140, 160, 130, 30))
-        self.irreg_newinflec.setObjectName("irreg_newinflec")
-        self.Irreg_start = QtWidgets.QPushButton(self.Irreg_frame)
-        self.Irreg_start.setGeometry(QtCore.QRect(180, 200, 93, 28))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.Irreg_start.setFont(font)
-        self.Irreg_start.setObjectName("Irreg_start")
-        self.label_11 = QtWidgets.QLabel(self.Irreg_frame)
-        self.label_11.setGeometry(QtCore.QRect(10, 60, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_11.setFont(font)
-        self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_11.setObjectName("label_11")
-        self.label_12 = QtWidgets.QLabel(self.Irreg_frame)
-        self.label_12.setGeometry(QtCore.QRect(10, 110, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_12.setFont(font)
-        self.label_12.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_12.setObjectName("label_12")
-        self.label_13 = QtWidgets.QLabel(self.Irreg_frame)
-        self.label_13.setGeometry(QtCore.QRect(10, 160, 111, 30))
-        font = QtGui.QFont()
-        font.setFamily("Arial")
-        self.label_13.setFont(font)
-        self.label_13.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_13.setObjectName("label_13")
+    #Add function에서 ok를 누르면 실행될 함수
+
+    def add_function(self):
+        global handle_df
+
+        ##입력값 텍스트화
+        add_col_txt = str(self.Add_column.currentText())  ##combobox는 currentText()사용
+        add_pos_txt = str(self.Add_position.currentText())
+        add_new_txt = str(self.Add_oldText.text())
+        handle_df = add(handle_df, add_col_txt, add_pos_txt, add_new_txt) ##새로운 변수에 저장하기
+        #     handle_df (작업창에 떠있는 데이터프레임),
+
+        self.readFiles2 (handle_df) ##readfiles함수에 넣으면 나타남.    
+
+    #Remove Function에서 ok를 누르면 실행될 함수
+
+    def remove_function(self):
+        global handle_df
+
+        ##입력값 텍스트화
+        rem_col_txt = str(self.Remove_column.currentText())
+        rem_pos_txt = str(self.Remove_position.currentText())
+        rem_old_txt = str(self.Remove_oldText.text())
+        
+        handle_df = rmv(handle_df, rem_col_txt, rem_pos_txt, rem_old_txt)
+
+        self.readFiles2 (handle_df)
+
+    #Replace Function에서 ok를 누르면 실행될 함수
+    
+    def replace_function(self):
+        global handle_df
+
+        ##입력값 텍스트화
+        rep_col_txt = str(self.Replace_column.currentText())
+        rep_pos_txt = str(self.Replace_position.currentText())
+        rep_old_txt = str(self.Replace_oldtext.text())
+        rep_new_txt = str(self.Replace_newtext.text())
+        
+        if rep_pos_txt == 'anywhere':
+            handle_df = anywhere_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+        if rep_pos_txt == 'whole string':
+            handle_df = whole_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+        if rep_pos_txt == 'beginning':
+            handle_df = begin_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+        if rep_pos_txt == 'ending':
+            handle_df = end_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+
+        self.readFiles2(handle_df)
+
+    #Replace Function에서 ok를 누르면 실행될 함수
+
+    def irregular_function(self):
+        global handle_df
+
+        fin_con_txt = str(self.Irreg_cons.text())
+        old_inf_txt = str(self.Irreg_oldinflec.text())
+        new_inf_txt = str(self.irreg_newinflec.text())
+
+        handle_df = irreg(handle_df, fin_con_txt, old_inf_txt, new_inf_txt)
+
+        self.readFiles2(handle_df)
+
+    ##Add row 버튼을 누르면 실행될 함수
+
+    def add_row_function(self):
+        global handle_df
+
+        handle_df = addrow(handle_df)
+
+        self.readFiles2(handle_df)
+
+    ##Delete row 버튼을 누르면 실행될 함수
+
+    def delete_row_function(self):
+        global handle_df
+
+        handle_df = delrow(handle_df)
+        
+        self.readFiles2(handle_df)
+
+        
+    ##Duplicate row 버튼을 누르면 실행될 함수
+    def duplicate_row_function(self):
+        global handle_df
+
+        cell_idx = self.new_tableWidget.selectedIndexes() ##선택한 행의 인덱스 정보 반환하는 함수
+
+        sel_cells = list(set(( idx.row() for idx in cell_idx))) ##인덱스 정보 중 row의 인덱스 값(정수)로 변환
+        # sel_cell = self.new_tableWidget.currentRow()  선택한 단일의 행의 인덱스 값(정수)반환하는 함수 
+
+        for i in sel_cells:
+            handle_df = duprow(handle_df, i)
+
+        self.readFiles2(handle_df)
