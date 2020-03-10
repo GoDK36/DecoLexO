@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import os, re
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.Qt import QAbstractItemView
 
     ##Function Code##
 
@@ -1063,6 +1064,7 @@ class Ui_Deco_LexO (object):
         self.gridLayout.addWidget(self.tabWidget_1, 0, 0, 1, 1)
         self.dataFrame_Tab = QtWidgets.QTabWidget(self.centralwidget)
         self.dataFrame_Tab.setObjectName("dataFrame_Tab")
+
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.tab)
@@ -1172,7 +1174,7 @@ class Ui_Deco_LexO (object):
         self.Irreg_start.released.connect(self.irregular_function)
         self.Push_addrow.released.connect(self.add_row_function)
         self.Push_Deleterow.released.connect(self.delete_row_function)
-        
+        self.Push_Duplicaterow.released.connect(self.duplicate_row_function)
 
     def retranslateUi(self, Deco_LexO):
         _translate = QtCore.QCoreApplication.translate
@@ -1519,6 +1521,27 @@ class Ui_Deco_LexO (object):
 
         handle_df = delrow(handle_df)
         
+        self.readFiles2(handle_df)
+
+
+    #selection function
+    def selectRows(self, selection: list):
+        for i in selection:
+            self.new_tableWidget.selectRow(i)
+
+        
+    ##Duplicate row 버튼을 누르면 실행될 함수
+    def duplicate_row_function(self):
+        global handle_df
+
+        cell_idx = self.new_tableWidget.selectedIndexes() ##선택한 행의 인덱스 정보 반환하는 함수
+
+        sel_cells = list(set(( idx.row() for idx in cell_idx))) ##인덱스 정보 중 row의 인덱스 값(정수)로 변환
+        # sel_cell = self.new_tableWidget.currentRow()  선택한 단일의 행의 인덱스 값(정수)반환하는 함수 
+
+        for i in sel_cells:
+            handle_df = duprow(handle_df, i)
+
         self.readFiles2(handle_df)
 
 
