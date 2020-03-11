@@ -10,20 +10,30 @@ import pandas as pd
 import numpy as np
 import os, re
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.Qt import QAbstractItemView
+from collections import OrderedDict
 
-#tab_nme lst
+#tab_nme list
+#열린 탭의 이름을 저장하는 리스트
 tab_name_list = []
 
 #original df list
+#열린 df의 원본 파일을 저장하는 리스트
 original_df_list = []
 
+
+#tab_name dictionary
+tab_name_dic = {}
+
 #handle_df list
+#처리한 df의 데이터를 저장하는 리스트
 handle_df_list = []
 
+#new_table list
+new_table_list = []
 
-    ##Function Code##
 
+##Function Code##
+#df을 입력받아 column name들을 지정해주고 df화 해주는 작업을 하는 함수
 def column_name(df):
     # 첫 행 살리기
     first = list (df.columns)
@@ -130,6 +140,10 @@ def column_name(df):
 
     return df
 
+#####################################################################
+# filter part에서 Euals, Starts with, Contains, Ends With, Is Empty #
+# 부분을 만들어 내는 함수                                            #
+#####################################################################
 
 # 입력받은 word와 같은 단어 정보들을 출력하는 함수
 def Equals(df, col, word):
@@ -207,7 +221,8 @@ def Contains(df, col, word):
     filtered_df.head()
 
     return filtered_df
-        
+
+#입력받은 단어로 시작하는 단어를 찾아내는 함수
 def Starts_With(df, col, word):
     if '+' in word:
             word_list = word.split ('+')
@@ -245,6 +260,7 @@ def Starts_With(df, col, word):
 
     return filtered_df
 
+#입력 받은 단어로 끝나는 단어를 찾아내는 함수
 def Ends_With(df, col, word):
     if '+' in word:
             word_list = word.split ('+')
@@ -280,6 +296,7 @@ def Ends_With(df, col, word):
 
     return filtered_df
 
+#입력 받은 단어를 포함하지 않는 단어를 찾아내는 함수
 def Is_Empty(df, col, word):
     if '+' in word:
             word_list = word.split ('+')
@@ -315,7 +332,16 @@ def Is_Empty(df, col, word):
 
     return filtered_df
 
-    # 초성 리스트. 00 ~ 18
+
+######################################################################
+# filter part에서 phonological 부분 중 초성 중성 종성이 입력 되었을 때 #
+# 해당 음소들을 가진 단어를 찾아낼 때와                                #
+# Edit part에서 원하는 음소를 편집하고 싶을 때 해당 음소를 가진 단어를  #
+# 찾아낼 때 사용 되는 함수이다.                                       #
+#####################################################################
+
+
+# 초성 리스트. 00 ~ 18
 CHOSUNG_LIST = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 # 중성 리스트. 00 ~ 20
 JUNGSUNG_LIST = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
@@ -1314,38 +1340,7 @@ def Last_Syllable(df, a, b, c):
 
     return filtered_df
 
-#입력받은 단어들이 없는 단어 정보들을 출력하는 함수
-def Is_Empty(df, col, word):
-    
-    cnt = 0
-    
-    for i in range(len(word)):
-        for j in range(len(df)):
-            if word[i] not in df.loc[j,col]:
-                if cnt == 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    header = result.columns
-                    result.to_csv('filter_result.csv', columns = header, index = False, encoding ='utf-8-sig') 
-                    cnt += 1
-                elif cnt != 0:
-                    result = df.iloc[j]
-                    result = result.to_frame().T
-                    result.to_csv('filter_result.csv', mode = 'a', header = False, index = False, encoding ='utf-8-sig') 
 
-#함수를 읽어 주는 함수
-def readFiles(new_tableWidget, df):
-        newdf = column_name (df)
-        new_tableWidget.setColumnCount (len (newdf.columns))
-        header = newdf.columns
-        new_tableWidget.setHorizontalHeaderLabels (header)
-        new_tableWidget.setRowCount (len (newdf.index))
-        for i in range (len (newdf.index)):
-            for j in range (len (newdf.columns)):
-                new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (newdf.iat[i, j])))
-
-        new_tableWidget.resizeColumnsToContents ()
-        new_tableWidget.resizeRowsToContents ()
 
 #편집을 원하는 행을 리스트화 하는 함수
 #df에는 불러온 데이터프레임을 넣고 col에는 수정 원하는 행 이름을 삽입
@@ -1356,7 +1351,10 @@ def df2first(df,col):
     res = sum(res,[])
     return res
 
-#Edit section 
+
+################
+# Edit section #
+################
 
 #add 기능 함수   
 def add(df, col, add_place, add_text):
@@ -1508,25 +1506,6 @@ mid = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', '�
 # 종성 리스트. 00 ~ 27 + 1(1개 없음)
 final = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
-def Divide(korean_word):
-    global initial
-    global mid
-    global final
-
-    r_lst = []
-    for w in list(korean_word.strip()):
-        ## 영어인 경우 구분해서 작성함. 
-        if '가'<=w<='힣':
-            ## 588개 마다 초성이 바뀜. 
-            ch1 = (ord(w) - ord('가'))//588
-            ## 중성은 총 28가지 종류
-            ch2 = ((ord(w) - ord('가')) - (588*ch1)) // 28
-            ch3 = (ord(w) - ord('가')) - (588*ch1) - 28*ch2
-            r_lst.append([initial[ch1], mid[ch2], final[ch3]])
-        else:
-            r_lst.append([w])
-    return r_lst
-
 #자모음 다시 합치는 함수
 def jaso_combi(a, b, c):
     global initial
@@ -1541,25 +1520,6 @@ def jaso_combi(a, b, c):
     wansung = chr(wansung)
     
     return wansung
-
-#끝음절 replace 함수 (어미 바꾸기 용)
-def end_rpl(df, col, original_text, new_text):
-    res = []
-    first = df2first(df,col)
-    #column 이름 리스트화(나중에 재정렬용)
-    col_nme = df.columns.tolist()
-    #end에서 replace
-    for x in first:
-        y = re.sub(original_text + '$', new_text, x)
-        res.append(y)
-        
-    #열 추가
-    df[col] = res
-    
-    #열 위치 재정렬
-    df = df[col_nme]
-
-    return(df)
 
 #irreg 메인 함수
 def irreg(df, jongsung, old_eomi, new_eomi):
@@ -1629,11 +1589,96 @@ def duprow(df, sel):
     ##특정 행을 클릭하는것을 어떻게 나타내는지??
     return(res_df)
 
+##dic파일로 저장하는 함수
+####dic작성 시작####
+def df2dic(df, filepath):
+    
+    #딕셔너리 자료형의 특징을 이용하여 리스트 요소 순서를 유지하며 중복 제거하기
+
+    def rmvspc(alist):
+        d = OrderedDict()
+        for i in alist:
+            d[i] = True
+            res = list(d.keys())
+        return res
+        
+    #필요한 구분자들
+    spc = "ㆍ"
+    com = ","
+    plus = "+"
+    dot = "."
+
+    #나중에 txt파일에 쓰기 쉽게 하기 위해 리스트 형식으로 저장
+    dic_lst = [] 
+
+    ind_l = len(df.index) #데이터의 총 개수(index 길이)
+
+    for i in range(0, ind_l):
+        dic = "ㆍ" #dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
+        ind_lst = list(df.iloc[i]) 
+        inf_lst = rmvspc(ind_lst) #중복되는 요소인 ''을 하나로 줄이기
+        inf_lst.remove('') #''는 필요 없으므로 삭제
+        lem = inf_lst[0] #lemma 추출
+        sep_lem = spc.join(lem) #lemma의 각 음절마다 ㆍ삽입
+        dic = dic + sep_lem + com + lem + dot #문자열 형식으로 합치기('ㆍ가ㆍ결,가결.' 이 부분까지 완성)
+        #category의 ns01과 같은 정보를 ns만 따로 떼어내기
+        cat = inf_lst[1] 
+        dic = dic + cat[0:2]
+        #그 외의 info들을 모두 'ZNZ+LEO+SLB' 이런 형식으로 더해주기
+        for x in range(2, len(inf_lst)):
+            inf = inf_lst[x]
+            dic = dic + plus + inf
+        #ns 뒤에 붙은 숫자 정보를 'JN#JN숫자'형식으로 바꾸어주기
+        last = plus + "JN#JN" + cat[-2:]
+        dic1 = dic + last
+        dic_lst.append(str(dic1))
+
+    # writedata.py
+    f = open(filepath, 'w', encoding='utf-8-sig')
+
+
+
+    for i in range(len(dic_lst)):
+        f.write('%s \n' % dic_lst[i])
+
+
+    f.close()
+
+
+#############
+# GUI PART  #
+#############
 
 class Ui_Deco_LexO(object):
     def setupUi(self, Deco_LexO):
         global Tab_index
-        Tab_index = -1
+        global count
+        global alpha
+        self.a = QtWidgets.QTableWidget
+        self.b = QtWidgets.QTableWidget
+        self.c = QtWidgets.QTableWidget
+        self.d = QtWidgets.QTableWidget
+        self.e = QtWidgets.QTableWidget
+        self.f = QtWidgets.QTableWidget
+        self.g = QtWidgets.QTableWidget
+        self.h = QtWidgets.QTableWidget
+        self.i = QtWidgets.QTableWidget
+        self.j = QtWidgets.QTableWidget
+        self.k = QtWidgets.QTableWidget
+        self.l = QtWidgets.QTableWidget
+        self.m = QtWidgets.QTableWidget
+        self.n = QtWidgets.QTableWidget
+        self.o = QtWidgets.QTableWidget
+        self.p = QtWidgets.QTableWidget
+        self.q = QtWidgets.QTableWidget
+        self.r = QtWidgets.QTableWidget
+        self.s = QtWidgets.QTableWidget
+        self.t = QtWidgets.QTableWidget
+
+        alpha = [self.a, self.b, self.c, self.d, self.e, self.f ,self.g, self.h, self.i, self.j, 
+                self.k, self.l, self.m, self.n, self.o, self.p, self.q, self.r, self.s, self.t]
+        Tab_index = 0
+        count = 0
         Deco_LexO.setObjectName("Deco_LexO")
         Deco_LexO.resize(709, 732)
         self.centralwidget = QtWidgets.QWidget(Deco_LexO)
@@ -1653,6 +1698,8 @@ class Ui_Deco_LexO(object):
         self.tabWidget_1.setObjectName("tabWidget_1")
         self.Modifying_Tab = QtWidgets.QWidget()
         self.Modifying_Tab.setObjectName("Modifying_Tab")
+
+        #Filter Entry part
         self.FEntryCombo = QtWidgets.QComboBox(self.Modifying_Tab)
         self.FEntryCombo.setGeometry(QtCore.QRect(30, 40, 91, 21))
         self.FEntryCombo.setObjectName("FEntryCombo")
@@ -1666,6 +1713,8 @@ class Ui_Deco_LexO(object):
         self.FEntry_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FEntry_Input.setGeometry(QtCore.QRect(130, 40, 161, 21))
         self.FEntry_Input.setObjectName("FEntry_Input")
+
+        #Filter Lemma part
         self.FLemma_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FLemma_Input.setGeometry(QtCore.QRect(130, 100, 161, 21))
         self.FLemma_Input.setObjectName("FLemma_Input")
@@ -1679,6 +1728,8 @@ class Ui_Deco_LexO(object):
         self.FLemmaCombo.addItem("")
         self.FLemmaCombo.addItem("")
         self.FLemmaCombo.addItem("")
+
+        #Filter Category part
         self.FCateCombo = QtWidgets.QComboBox(self.Modifying_Tab)
         self.FCateCombo.setGeometry(QtCore.QRect(30, 160, 91, 21))
         self.FCateCombo.setObjectName("FCateCombo")
@@ -1692,6 +1743,26 @@ class Ui_Deco_LexO(object):
         self.FCate_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FCate_Input.setGeometry(QtCore.QRect(130, 160, 161, 21))
         self.FCate_Input.setObjectName("FCate_Input")
+
+        #Filter Infornation part
+        self.FInfoCombo = QtWidgets.QComboBox(self.Modifying_Tab)
+        self.FInfoCombo.setGeometry(QtCore.QRect(30, 220, 91, 21))
+        self.FInfoCombo.setObjectName("FInfoCombo")
+        self.FInfoCombo.addItem("")
+        self.FInfoCombo.setItemText(0, "")
+        self.FInfoCombo.addItem("")
+        self.FInfoCombo.addItem("")
+        self.FInfoCombo.addItem("")
+        self.FInfoCombo.addItem("")
+        self.FInfoCombo.addItem("")
+        self.FInfo_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
+        self.FInfo_Input.setGeometry(QtCore.QRect(210, 220, 81, 21))
+        self.FInfo_Input.setObjectName("FInfo_Input")
+        self.FInfo_Colname = QtWidgets.QLineEdit(self.Modifying_Tab)
+        self.FInfo_Colname.setGeometry(QtCore.QRect(130, 220, 71, 21))
+        self.FInfo_Colname.setObjectName("FInfo_Colname")
+
+        #Filter Phonological First_Syllable part
         self.FFirst_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FFirst_1.setGeometry(QtCore.QRect(30, 320, 51, 21))
         self.FFirst_1.setObjectName("FFirst_1")
@@ -1701,6 +1772,8 @@ class Ui_Deco_LexO(object):
         self.FFirst_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FFirst_3.setGeometry(QtCore.QRect(170, 320, 51, 21))
         self.FFirst_3.setObjectName("FFirst_3")
+
+        #Filter Phonological Second_Syllable part
         self.FSec_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FSec_3.setGeometry(QtCore.QRect(170, 370, 51, 21))
         self.FSec_3.setObjectName("FSec_3")
@@ -1710,6 +1783,8 @@ class Ui_Deco_LexO(object):
         self.FSec_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FSec_1.setGeometry(QtCore.QRect(30, 370, 51, 21))
         self.FSec_1.setObjectName("FSec_1")
+
+        #Filter Phonological Second_to_Last part
         self.FSecL_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FSecL_3.setGeometry(QtCore.QRect(170, 420, 51, 21))
         self.FSecL_3.setObjectName("FSecL_3")
@@ -1719,6 +1794,8 @@ class Ui_Deco_LexO(object):
         self.FSecL_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FSecL_1.setGeometry(QtCore.QRect(30, 420, 51, 21))
         self.FSecL_1.setObjectName("FSecL_1")
+
+        #Filter Phonological Last_Syllable part
         self.FLast_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FLast_3.setGeometry(QtCore.QRect(170, 470, 51, 21))
         self.FLast_3.setObjectName("FLast_3")
@@ -1728,17 +1805,21 @@ class Ui_Deco_LexO(object):
         self.FLast_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
         self.FLast_1.setGeometry(QtCore.QRect(30, 470, 51, 21))
         self.FLast_1.setObjectName("FLast_1")
+
         self.FPhonoFrame = QtWidgets.QFrame(self.Modifying_Tab)
         self.FPhonoFrame.setGeometry(QtCore.QRect(10, 290, 281, 251))
         self.FPhonoFrame.setFrameShape(QtWidgets.QFrame.Box)
         self.FPhonoFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.FPhonoFrame.setObjectName("FPhonoFrame")
+
+        #Filter Phonological ColumnBox part
         self.FColCombo = QtWidgets.QComboBox(self.FPhonoFrame)
         self.FColCombo.setGeometry(QtCore.QRect(90, 220, 81, 21))
         self.FColCombo.setObjectName("FColCombo")
         self.FColCombo.addItem("")
         self.FColCombo.addItem("")
         self.FColCombo.addItem("")
+
         self.label_7 = QtWidgets.QLabel(self.FPhonoFrame)
         self.label_7.setGeometry(QtCore.QRect(20, 50, 211, 31))
         self.label_7.setObjectName("label_7")
@@ -1755,15 +1836,22 @@ class Ui_Deco_LexO(object):
         self.label_10.setGeometry(QtCore.QRect(10, 220, 61, 21))
         self.label_10.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_10.setObjectName("label_10")
+
+        #Filter button
         self.FFiltering_Button = QtWidgets.QPushButton(self.Modifying_Tab)
         self.FFiltering_Button.setGeometry(QtCore.QRect(20, 550, 75, 23))
         self.FFiltering_Button.setObjectName("FFiltering_Button")
+
+        #Show all button
         self.FShow_Button = QtWidgets.QPushButton(self.Modifying_Tab)
         self.FShow_Button.setGeometry(QtCore.QRect(110, 550, 75, 23))
         self.FShow_Button.setObjectName("FShow_Button")
+
+        #clear button
         self.FClear_Button = QtWidgets.QPushButton(self.Modifying_Tab)
         self.FClear_Button.setGeometry(QtCore.QRect(210, 550, 75, 23))
         self.FClear_Button.setObjectName("FClear_Button")
+
         self.label = QtWidgets.QLabel(self.Modifying_Tab)
         self.label.setGeometry(QtCore.QRect(30, 10, 56, 21))
         self.label.setObjectName("label")
@@ -1773,22 +1861,9 @@ class Ui_Deco_LexO(object):
         self.label_3 = QtWidgets.QLabel(self.Modifying_Tab)
         self.label_3.setGeometry(QtCore.QRect(30, 130, 56, 21))
         self.label_3.setObjectName("label_3")
-        self.FInfo_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FInfo_Input.setGeometry(QtCore.QRect(210, 220, 81, 21))
-        self.FInfo_Input.setObjectName("FInfo_Input")
         self.label_4 = QtWidgets.QLabel(self.Modifying_Tab)
         self.label_4.setGeometry(QtCore.QRect(30, 190, 81, 21))
         self.label_4.setObjectName("label_4")
-        self.FInfoCombo = QtWidgets.QComboBox(self.Modifying_Tab)
-        self.FInfoCombo.setGeometry(QtCore.QRect(30, 220, 91, 21))
-        self.FInfoCombo.setObjectName("FInfoCombo")
-        self.FInfoCombo.addItem("")
-        self.FInfoCombo.setItemText(0, "")
-        self.FInfoCombo.addItem("")
-        self.FInfoCombo.addItem("")
-        self.FInfoCombo.addItem("")
-        self.FInfoCombo.addItem("")
-        self.FInfoCombo.addItem("")
         self.label_5 = QtWidgets.QLabel(self.Modifying_Tab)
         self.label_5.setGeometry(QtCore.QRect(10, 270, 141, 31))
         font = QtGui.QFont()
@@ -1796,9 +1871,8 @@ class Ui_Deco_LexO(object):
         font.setWeight(75)
         self.label_5.setFont(font)
         self.label_5.setObjectName("label_5")
-        self.FInfo_Colname = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FInfo_Colname.setGeometry(QtCore.QRect(130, 220, 71, 21))
-        self.FInfo_Colname.setObjectName("FInfo_Colname")
+
+        #Filter Phonological button part
         self.FPhonoFrame.raise_()
         self.FEntryCombo.raise_()
         self.FEntry_Input.raise_()
@@ -1829,6 +1903,8 @@ class Ui_Deco_LexO(object):
         self.FInfoCombo.raise_()
         self.label_5.raise_()
         self.FInfo_Colname.raise_()
+
+        #Edit GUI
         self.tabWidget_1.addTab(self.Modifying_Tab, "")
         self.Edit_tab = QtWidgets.QWidget()
         self.Edit_tab.setObjectName("Edit_tab")
@@ -2144,7 +2220,10 @@ class Ui_Deco_LexO(object):
         self.Edit_function_tab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Deco_LexO)
 
-                ##connenct code##
+        ##connenct code##
+        self.actionOpen_file_s.triggered.connect(self.openFiles)
+        self.actionSave_file_as.triggered.connect(self.save_as)
+        #Edit part connect
         self.Add_start.released.connect(self.add_function)
         self.Remove_start.released.connect(self.remove_function)
         self.Replace_start.released.connect(self.replace_function)
@@ -2152,18 +2231,20 @@ class Ui_Deco_LexO(object):
         self.Push_addrow.released.connect(self.add_row_function)
         self.Push_Deleterow.released.connect(self.delete_row_function)
         self.Push_Duplicaterow.released.connect(self.duplicate_row_function)
+
+        #Filter part connect
         self.FShow_Button.released.connect (self.show_all)
         self.FFiltering_Button.released.connect (self.filter_function)
         self.FClear_Button.released.connect(self.clear)
-        # self.FShow_Button.clicked.connect(lambda parameter_list: self.openFiles())
-        self.actionOpen_file_s.triggered.connect (self.openFiles)
 
-
+    
 
     def retranslateUi(self, Deco_LexO):
         _translate = QtCore.QCoreApplication.translate
         Deco_LexO.setWindowTitle(_translate("Deco_LexO", "Deco-LexO"))
         self.dataFrame_Tab.setTabText(self.dataFrame_Tab.indexOf(self.tab), _translate("Deco_LexO", "Start"))
+
+        #Filter part GUI
         self.FEntryCombo.setItemText(1, _translate("Deco_LexO", "Equals"))
         self.FEntryCombo.setItemText(2, _translate("Deco_LexO", "Starts with"))
         self.FEntryCombo.setItemText(3, _translate("Deco_LexO", "Ends with"))
@@ -2200,6 +2281,8 @@ class Ui_Deco_LexO(object):
         self.FColCombo.setItemText(2, _translate("Deco_LexO", "Entry"))
         self.label_5.setText(_translate("Deco_LexO", "Phonological shape"))
         self.tabWidget_1.setTabText(self.tabWidget_1.indexOf(self.Modifying_Tab), _translate("Deco_LexO", "Filter"))
+
+        #Edit part GUI
         self.Add_column.setItemText(1, _translate("Deco_LexO", "Lemma"))
         self.Add_column.setItemText(2, _translate("Deco_LexO", "Category"))
         self.Add_position.setItemText(0, _translate("Deco_LexO", "beginning"))
@@ -2261,61 +2344,68 @@ class Ui_Deco_LexO(object):
 
 
 
-    # 함수를 읽어 주느 함수
-    def readFiles(self, new_tableWidget, vis_df):
+    # 첫번째 파일을 오픈해 줄 때만 파일을 열어주는 함수
+    def readFiles(self, vis_df):
+        global count
+        control_Tw = alpha[count]
         for i in range (len (vis_df.index)):
             for j in range (len (vis_df.columns)):
-                self.new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
+                control_Tw.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
 
-        self.new_tableWidget.resizeColumnsToContents ()
-        self.new_tableWidget.resizeRowsToContents ()
-
+        control_Tw.resizeColumnsToContents ()
+        control_Tw.resizeRowsToContents ()
+        count += 1
+    # open file이 아닌 데이터 처리로 visualize를 할 때 사용되는 함수
     def readFiles2(self, vis_df):
-        self.new_tableWidget.setColumnCount (0)
-        self.new_tableWidget.setRowCount (0)
-        self.new_tableWidget.setColumnCount (len (vis_df.columns))
+        control_Tw = alpha[self.dataFrame_Tab.currentIndex()-1]
+        control_Tw.setColumnCount (0)
+        control_Tw.setRowCount (0)
+        control_Tw.setColumnCount (len (vis_df.columns))
         header = vis_df.columns
-        self.new_tableWidget.setHorizontalHeaderLabels (header)
-        self.new_tableWidget.setRowCount (len (vis_df.index))
+        control_Tw.setHorizontalHeaderLabels (header)
+        control_Tw.setRowCount (len (vis_df.index))
         for i in range (len (vis_df.index)):
             for j in range (len (vis_df.columns)):
-                self.new_tableWidget.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
+                control_Tw.setItem (i, j, QtWidgets.QTableWidgetItem (str (vis_df.iat[i, j])))
 
-        self.new_tableWidget.resizeColumnsToContents ()
-        self.new_tableWidget.resizeRowsToContents ()
+        control_Tw.resizeColumnsToContents ()
+        control_Tw.resizeRowsToContents ()
 
+    #open files를 했을 때 실행 되는 함수
     def openFiles(self):
         global handle_df, original_df, Tab_index
-        fname = QtWidgets.QFileDialog.getOpenFileName ()
-        self.new_tab = QtWidgets.QWidget ()
-        self.new_tab.setObjectName ("new_tab")
-        self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
-        self.gridLayout_2.setObjectName ("gridLayout_2")
-        self.new_tableWidget = QtWidgets.QTableWidget (self.new_tab)
-        self.new_tableWidget.setObjectName ("new_tableWidget")
-        self.new_tableWidget.setColumnCount (0)
-        self.new_tableWidget.setRowCount (0)
-        self.gridLayout_2.addWidget (self.new_tableWidget, 0, 1, 1, 1)
-        self.dataFrame_Tab.addTab (self.new_tab, "")
-        self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split('/')[-1])
-        tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
-        Ofileloc = str (fname).split ("', '")[0][2:]
-        # 함수를 읽어 주느 함수
-        original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
-        original_df = column_name (original_read)
-        original_df_list.append(original_df)
-        handle_df = original_df.copy ()
-        handle_df_list.append(handle_df)
-        self.new_tableWidget.setColumnCount (len (handle_df.columns))
-        header = original_df.columns
-        self.new_tableWidget.setHorizontalHeaderLabels (header)
-        self.new_tableWidget.setRowCount (len (handle_df.index))
-        self.readFiles (self.new_tableWidget, handle_df)
-        Tab_index += 1
-        self.dataFrame_Tab.setCurrentIndex(Tab_index)
+        global count
+        global tab_name_dic
+        global handle_df_list, new_table_list
+        try:
+            fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '' , "CSV Files(*.csv)")
+            self.new_tab = QtWidgets.QWidget ()
+            self.new_tab.setObjectName ("new_tab")
+            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+            self.gridLayout_2.setObjectName ("gridLayout_2")
+            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+            alpha[count].setColumnCount (0)
+            alpha[count].setRowCount (0)
+            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split('/')[-1])
+            tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
+            Ofileloc = str (fname).split ("', '")[0][2:]
+            original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
+            original_df = column_name (original_read)
+            original_df_list.append(original_df)
+            handle_df = original_df.copy ()
+            handle_df_list.append(handle_df)
+            alpha[count].setColumnCount (len (handle_df.columns))
+            header = original_df.columns
+            alpha[count].setHorizontalHeaderLabels (header)
+            alpha[count].setRowCount (len (handle_df.index))
+            self.readFiles (handle_df)
+            Tab_index += 1
+            self.dataFrame_Tab.setCurrentIndex(Tab_index)
+        except Exception:
+            pass
+  
 
-    #####################
-    #####################
     def clear(self):
         self.FEntry_Input.setText('')
         self.FEntryCombo.setCurrentIndex(0)
@@ -2335,8 +2425,42 @@ class Ui_Deco_LexO(object):
         print(self.dataFrame_Tab.currentIndex())
 
 
+    ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
+    def save_as(self):
+        global handle_df
+        global original_df
+
+        result_df =  handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Location', '' , 'CSV File (*.csv);; DIC File (*.dic)')
+        
+        sfileloc = str (sname).split ("', '")[0][2:]
+
+        sfileform = sfileloc.split('.')[-1]
+
+        if sfileform == 'csv':
+            col_nme = original_df.columns.tolist()
+            result_df = result_df[col_nme]
+            print(result_df)
+            return (result_df.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
+        if sfileform == 'dic':
+            col_nme = original_df.columns.tolist()
+            result_df = result_df[col_nme]
+            return (df2dic(result_df, sfileloc))
+
+        
+
+
+    #filter part에서 filter 버튼을 누르면 실행되는 함수
+    #각각 상황에 맞게 위에 선언된 함수들을 연결해 주고
+    #상황에 맞게 나오느 결과들은 전역변수로 선언되 handle_df에 저장해준 후
+    #마지막에 handel_df_list에 해당 탭의 인덱스 번호 -1한 부분에 
+    #마지막으로 처리된 handle_df를 저장해준다.
     def filter_function(self):
         global handle_df
+        global filtered_df
+
+        
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
         
         #Lemma에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
         if self.FLemma_Input.text () != '':
@@ -2399,11 +2523,13 @@ class Ui_Deco_LexO(object):
 
             self.readFiles2 (handle_df)
         
+        #Information에 원하는 정보가 들어있을 경우
         if self.FInfo_Input.text () != '':
             statelis = [0]
             FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
             statelis.insert (0, FComboDict[self.FInfoCombo.currentText ()])
 
+            #사용자가 colum name을 직접 설정할 경우
             if self.FInfo_Colname.text() != '':
                 if statelis[0] == 1:
                     handle_df = Equals (handle_df, self.FInfo_Colname.text(), self.FInfo_Input.text ())
@@ -2418,6 +2544,7 @@ class Ui_Deco_LexO(object):
 
                 self.readFiles2 (handle_df)
             
+            #사용자가 column name을 설정하지 않은 경우
             else:
                 if statelis[0] == 1:
                     handle_df = Equals (handle_df, 'Lemma', self.FLemma_Input.text ())
@@ -2433,35 +2560,41 @@ class Ui_Deco_LexO(object):
 
             self.readFiles2 (handle_df)
 
-        
+        #Fisrt Syllable
         if self.FFirst_1.text() != '' or self.FFirst_2.text() != '' or self.FFirst_3.text() != '':
             handle_df = First_Syllable(handle_df, self.FFirst_1.text(), self.FFirst_2.text(), self.FFirst_3.text())
 
             self.readFiles2 (handle_df)
-            
+
+        #Second Syllable  
         if self.FSec_1.text() != '' or self.FSec_2.text() != '' or self.FSec_3.text() != '':
             handle_df = Second_Syllable(handle_df, self.FSec_1.text(), self.FSec_2.text(), self.FSec_3.text())
 
             self.readFiles2 (handle_df)
-            
+
+        #Second to Last syllable
         if self.FSecL_1.text() != '' or self.FSecL_2.text() != '' or self.FSecL_3.text() != '':
             handle_df = Second_to_Last_Syllable(handle_df, self.FSecL_1.text(), self.FSecL_2.text(), self.FSecL_3.text())
 
             self.readFiles2 (handle_df)
-            
+        
+        #Last Syllable
         if self.FLast_1.text() != '' or self.FLast_2.text() != '' or self.FLast_3.text() != '':
             handle_df = Last_Syllable(handle_df, self.FLast_1.text(), self.FLast_2.text(), self.FLast_3.text())
 
             self.readFiles2 (handle_df)
 
+        handle_df_list[self.dataFrame_Tab.currentIndex() -1 ] = handle_df
+        print( handle_df_list[self.dataFrame_Tab.currentIndex() -1 ] )
+
     #show버튼을 누르면 원본 데이터를 보여주는 함수
     def show_all(self):
         global handle_df
 
-        handle_df = original_df.copy()
+        print(self.dataFrame_Tab.currentIndex())
+        handle_df = original_df_list[self.dataFrame_Tab.currentIndex()-1].copy()
 
         self.readFiles2 (handle_df)
-
 
 
     ######################
@@ -2474,6 +2607,7 @@ class Ui_Deco_LexO(object):
     def add_function(self):
         global handle_df
 
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
         ##입력값 텍스트화
         add_col_txt = str(self.Add_column.currentText())  ##combobox는 currentText()사용
         add_pos_txt = str(self.Add_position.currentText())
@@ -2488,6 +2622,8 @@ class Ui_Deco_LexO(object):
     def remove_function(self):
         global handle_df
 
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+
         ##입력값 텍스트화
         rem_col_txt = str(self.Remove_column.currentText())
         rem_pos_txt = str(self.Remove_position.currentText())
@@ -2501,6 +2637,8 @@ class Ui_Deco_LexO(object):
     
     def replace_function(self):
         global handle_df
+
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
 
         ##입력값 텍스트화
         rep_col_txt = str(self.Replace_column.currentText())
@@ -2524,6 +2662,8 @@ class Ui_Deco_LexO(object):
     def irregular_function(self):
         global handle_df
 
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+
         fin_con_txt = str(self.Irreg_cons.text())
         old_inf_txt = str(self.Irreg_oldinflec.text())
         new_inf_txt = str(self.irreg_newinflec.text())
@@ -2537,6 +2677,8 @@ class Ui_Deco_LexO(object):
     def add_row_function(self):
         global handle_df
 
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+
         handle_df = addrow(handle_df)
 
         self.readFiles2(handle_df)
@@ -2546,6 +2688,8 @@ class Ui_Deco_LexO(object):
     def delete_row_function(self):
         global handle_df
 
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+
         handle_df = delrow(handle_df)
         
         self.readFiles2(handle_df)
@@ -2554,8 +2698,11 @@ class Ui_Deco_LexO(object):
     ##Duplicate row 버튼을 누르면 실행될 함수
     def duplicate_row_function(self):
         global handle_df
+        global alpha
 
-        cell_idx = self.new_tableWidget.selectedIndexes() ##선택한 행의 인덱스 정보 반환하는 함수
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+
+        cell_idx = alpha[self.dataFrame_Tab.currentIndex()-1].selectedIndexes() #선택한 행의 인덱스 정보 반환하는 함수
 
         sel_cells = list(set(( idx.row() for idx in cell_idx))) ##인덱스 정보 중 row의 인덱스 값(정수)로 변환
         # sel_cell = self.new_tableWidget.currentRow()  선택한 단일의 행의 인덱스 값(정수)반환하는 함수 
@@ -2564,8 +2711,12 @@ class Ui_Deco_LexO(object):
             handle_df = duprow(handle_df, i)
 
         self.readFiles2(handle_df)
+        
+       
 
+        #return tab_name_dic[self.dataFrame_Tab.currentWidget()]
 
+    
 
 if __name__ == "__main__":
     import sys
