@@ -1364,16 +1364,17 @@ def add(df, col, add_place, add_text):
     col_nme = df.columns.tolist()
     if add_place == 'beginning':
         for x in first:
-            res.append(add_text + x)
+            res.append(add_text + str(x))
     if add_place == 'ending':
         for x in first:
-            res.append(x + add_text)   
+            res.append(str(x) + add_text)   
     #열 추가
     del df[col]
     df[col] = res
     
     #열 위치 재정렬
     df = df[col_nme]
+
     
     return(df)
 
@@ -1572,6 +1573,7 @@ def irreg(df, jongsung, old_eomi, new_eomi):
 
 def addrow(df):
     df.loc[len(df)] = np.nan
+    df = df.fillna('')
     return df
 
 ##행 삭제
@@ -2304,7 +2306,7 @@ class Ui_Deco_LexO(object):
         self.Remove_start.setText(_translate("Deco_LexO", "OK"))
         self.Edit_function_tab.setTabText(self.Edit_function_tab.indexOf(self.Remove_tab), _translate("Deco_LexO", "Remove"))
         self.Replace_column.setItemText(1, _translate("Deco_LexO", "Lemma"))
-        self.Replace_column.setItemText(2, _translate("Deco_LexO", "Column"))
+        self.Replace_column.setItemText(2, _translate("Deco_LexO", "Category"))
         self.Replace_position.setItemText(0, _translate("Deco_LexO", "anywhere"))
         self.Replace_position.setItemText(1, _translate("Deco_LexO", "whole string"))
         self.Replace_position.setItemText(2, _translate("Deco_LexO", "beginning"))
