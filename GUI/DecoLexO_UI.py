@@ -2223,8 +2223,11 @@ class Ui_Deco_LexO(object):
         QtCore.QMetaObject.connectSlotsByName(Deco_LexO)
 
         ##connenct code##
+        
+        #Menu part connect
         self.actionOpen_file_s.triggered.connect(self.openFiles)
         self.actionSave_file_as.triggered.connect(self.save_as)
+
         #Edit part connect
         self.Add_start.released.connect(self.add_function)
         self.Remove_start.released.connect(self.remove_function)
@@ -2357,6 +2360,7 @@ class Ui_Deco_LexO(object):
         control_Tw.resizeColumnsToContents ()
         control_Tw.resizeRowsToContents ()
         count += 1
+        
     # open file이 아닌 데이터 처리로 visualize를 할 때 사용되는 함수
     def readFiles2(self, vis_df):
         control_Tw = alpha[self.dataFrame_Tab.currentIndex()-1]
