@@ -529,7 +529,7 @@ def First_Syllable(df, a, b, c, original_index):
         elif a == '':
             #a: '', b: '.'
             if b == '.':
-                 #a: '', b: '.', c: ['*', '.', '', 'w']  
+                #a: '', b: '.', c: ['*', '.', '', 'w']  
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
@@ -552,7 +552,7 @@ def First_Syllable(df, a, b, c, original_index):
                         cnt += 1
             #a: '', b: ''    
             elif b == '':
-                 #a: '', b: '', c: ['*', '.', '', 'w']  
+                #a: '', b: '', c: ['*', '.', '', 'w']  
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
@@ -712,7 +712,7 @@ def Second_Syllable(df, a, b, c, original_index):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
 
@@ -968,12 +968,10 @@ def Second_Syllable(df, a, b, c, original_index):
     for i in indexlis:
         result = df.loc[i]
         filtered_list.append(list(result))
-       
+        
     filtered_header = handle_df.columns.tolist()
     filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
     filtered_df.head()
-
-    # print(original_index)
 
     return filtered_df
 
@@ -1004,10 +1002,9 @@ def Second_to_Last_Syllable(df, a, b, c, original_index):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
-
 
     lemma = []
     for i in range(len(df)):
@@ -1254,8 +1251,6 @@ def Second_to_Last_Syllable(df, a, b, c, original_index):
         filtered_list.append(list(result))
 
     
-    # print(original_index)
-
     filtered_header = handle_df.columns.tolist()
     filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
     filtered_df.head()
@@ -1290,7 +1285,7 @@ def Last_Syllable(df, a, b, c, original_index):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
 
@@ -1544,8 +1539,6 @@ def Last_Syllable(df, a, b, c, original_index):
     filtered_df.head()
 
 
-    # print(original_index)
-
     return filtered_df
 
 
@@ -1780,6 +1773,7 @@ def irreg(df, jongsung, old_eomi, new_eomi):
 
 def addrow(df):
     df.loc[len(df)] = np.nan
+    df = df.fillna('')
     return df
 
 ##행 삭제
@@ -1797,6 +1791,60 @@ def duprow(df, sel):
     ##특정 행을 클릭하는것을 어떻게 나타내는지??
     return(res_df)
 
+##dic파일로 저장하는 함수
+####dic작성 시작####
+def df2dic(df, filepath):
+    
+    #딕셔너리 자료형의 특징을 이용하여 리스트 요소 순서를 유지하며 중복 제거하기
+
+    def rmvspc(alist):
+        d = OrderedDict()
+        for i in alist:
+            d[i] = True
+            res = list(d.keys())
+        return res
+        
+    #필요한 구분자들
+    spc = "ㆍ"
+    com = ","
+    plus = "+"
+    dot = "."
+
+    #나중에 txt파일에 쓰기 쉽게 하기 위해 리스트 형식으로 저장
+    dic_lst = [] 
+
+    ind_l = len(df.index) #데이터의 총 개수(index 길이)
+
+    for i in range(0, ind_l):
+        dic = "ㆍ" #dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
+        ind_lst = list(df.iloc[i]) 
+        inf_lst = rmvspc(ind_lst) #중복되는 요소인 ''을 하나로 줄이기
+        inf_lst.remove('') #''는 필요 없으므로 삭제
+        lem = inf_lst[0] #lemma 추출
+        sep_lem = spc.join(lem) #lemma의 각 음절마다 ㆍ삽입
+        dic = dic + sep_lem + com + lem + dot #문자열 형식으로 합치기('ㆍ가ㆍ결,가결.' 이 부분까지 완성)
+        #category의 ns01과 같은 정보를 ns만 따로 떼어내기
+        cat = inf_lst[1] 
+        dic = dic + cat[0:2]
+        #그 외의 info들을 모두 'ZNZ+LEO+SLB' 이런 형식으로 더해주기
+        for x in range(2, len(inf_lst)):
+            inf = inf_lst[x]
+            dic = dic + plus + inf
+        #ns 뒤에 붙은 숫자 정보를 'JN#JN숫자'형식으로 바꾸어주기
+        last = plus + "JN#JN" + cat[-2:]
+        dic1 = dic + last
+        dic_lst.append(str(dic1))
+
+    # writedata.py
+    f = open(filepath, 'w', encoding='utf-8-sig')
+
+
+
+    for i in range(len(dic_lst)):
+        f.write('%s \n' % dic_lst[i])
+
+
+    f.close()
 
 
 #############
@@ -1834,6 +1882,7 @@ class Ui_Deco_LexO(object):
 
         Tab_index = 0
         count = 0
+
         Deco_LexO.setObjectName("Deco_LexO")
         Deco_LexO.resize(709, 732)
         self.centralwidget = QtWidgets.QWidget(Deco_LexO)
@@ -2069,6 +2118,8 @@ class Ui_Deco_LexO(object):
         font.setFamily("Arial")
         self.Edit_function_tab.setFont(font)
         self.Edit_function_tab.setObjectName("Edit_function_tab")
+
+        #Add tab
         self.Add_tab = QtWidgets.QWidget()
         self.Add_tab.setObjectName("Add_tab")
         self.Add_column = QtWidgets.QComboBox(self.Add_tab)
@@ -2132,6 +2183,8 @@ class Ui_Deco_LexO(object):
         self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_11.setObjectName("label_11")
         self.Edit_function_tab.addTab(self.Add_tab, "")
+
+        #Remove tab
         self.Remove_tab = QtWidgets.QWidget()
         self.Remove_tab.setObjectName("Remove_tab")
         self.label_15 = QtWidgets.QLabel(self.Remove_tab)
@@ -2195,6 +2248,8 @@ class Ui_Deco_LexO(object):
         self.Remove_start.setFont(font)
         self.Remove_start.setObjectName("Remove_start")
         self.Edit_function_tab.addTab(self.Remove_tab, "")
+
+        #Replace tab
         self.Replace_tab = QtWidgets.QWidget()
         self.Replace_tab.setObjectName("Replace_tab")
         self.Replace_column = QtWidgets.QComboBox(self.Replace_tab)
@@ -2263,6 +2318,8 @@ class Ui_Deco_LexO(object):
         self.label_23.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_23.setObjectName("label_23")
         self.Edit_function_tab.addTab(self.Replace_tab, "")
+
+        #Irregular tab
         self.Irreg_tab = QtWidgets.QWidget()
         self.Irreg_tab.setObjectName("Irreg_tab")
         self.Irreg_cons = QtWidgets.QLineEdit(self.Irreg_tab)
@@ -2313,6 +2370,8 @@ class Ui_Deco_LexO(object):
         self.Push_Duplicaterow.setGeometry(QtCore.QRect(9, 500, 301, 30))
         font = QtGui.QFont()
         font.setFamily("Arial")
+
+        #Push Buttons
         self.Push_Duplicaterow.setFont(font)
         self.Push_Duplicaterow.setObjectName("Push_Duplicaterow")
         self.Push_addrow = QtWidgets.QPushButton(self.Edit_tab)
@@ -2330,6 +2389,8 @@ class Ui_Deco_LexO(object):
         self.tabWidget_1.addTab(self.Edit_tab, "")
         self.gridLayout.addWidget(self.tabWidget_1, 0, 0, 1, 1)
         Deco_LexO.setCentralWidget(self.centralwidget)
+
+        #Menu Section
         self.menubar = QtWidgets.QMenuBar(Deco_LexO)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 709, 21))
         self.menubar.setObjectName("menubar")
@@ -2376,7 +2437,10 @@ class Ui_Deco_LexO(object):
         QtCore.QMetaObject.connectSlotsByName(Deco_LexO)
 
         ##connenct code##
+
+        #Menu part connect
         self.actionOpen_file_s.triggered.connect(self.openFiles)
+        self.actionSave_file_as.triggered.connect(self.save_as)
 
         #Edit part connect
         self.Add_start.released.connect(self.add_function)
@@ -2481,6 +2545,8 @@ class Ui_Deco_LexO(object):
         self.Push_addrow.setText(_translate("Deco_LexO", "Add Row"))
         self.Push_Deleterow.setText(_translate("Deco_LexO", "Delete Row"))
         self.tabWidget_1.setTabText(self.tabWidget_1.indexOf(self.Edit_tab), _translate("Deco_LexO", "Edit"))
+
+        #Menu Section
         self.menuFile.setTitle(_translate("Deco_LexO", "File"))
         self.menuRecent_files.setTitle(_translate("Deco_LexO", "Recent files"))
         self.menuHelp.setTitle(_translate("Deco_LexO", "Help"))
@@ -2508,6 +2574,7 @@ class Ui_Deco_LexO(object):
         control_Tw.resizeColumnsToContents ()
         control_Tw.resizeRowsToContents ()
         count += 1
+
     # open file이 아닌 데이터 처리로 visualize를 할 때 사용되는 함수
     def readFiles2(self, vis_df):
         control_Tw = alpha[self.dataFrame_Tab.currentIndex()-1]
@@ -2578,6 +2645,29 @@ class Ui_Deco_LexO(object):
         print(self.dataFrame_Tab.currentIndex())
 
 
+    ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
+    def save_as(self):
+        global handle_df
+        global original_df
+
+        result_df =  handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Location', '' , 'CSV File (*.csv);; DIC File (*.dic)')
+        
+        sfileloc = str (sname).split ("', '")[0][2:]
+
+        sfileform = sfileloc.split('.')[-1]
+
+        if sfileform == 'csv':
+            col_nme = original_df.columns.tolist()
+            result_df = result_df[col_nme]
+            print(result_df)
+            return (result_df.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
+        if sfileform == 'dic':
+            col_nme = original_df.columns.tolist()
+            result_df = result_df[col_nme]
+            return (df2dic(result_df, sfileloc))
+
+        
     #filter part에서 filter 버튼을 누르면 실행되는 함수
     #각각 상황에 맞게 위에 선언된 함수들을 연결해 주고
     #상황에 맞게 나오느 결과들은 전역변수로 선언되 handle_df에 저장해준 후
