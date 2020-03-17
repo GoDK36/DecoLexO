@@ -2855,7 +2855,6 @@ class Ui_Deco_LexO(object):
         for i in range(len(handle_df)):
             filtered_df.iloc[original_index[i], :] = handle_df.iloc[i, :]
         
-       
         self.readFiles2 (filtered_df)
 
 
