@@ -2619,6 +2619,8 @@ class Ui_Deco_LexO(object):
         except Exception:
             pass
 
+    ##filter 입력칸에 있는 인풋들을 한번에 지워주는 기능
+
     def clear(self):
         self.FEntry_Input.setText('')
         self.FEntryCombo.setCurrentIndex(0)
@@ -2932,25 +2934,28 @@ class Ui_Deco_LexO(object):
         if rep_pos_txt == 'anywhere':
             filtered_df = anywhere_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
             
-            ##handle df list에 새로 엎어주기
+            ##handle df에 새로 엎어주기
             for i in range(len(original_index)):
                 handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
         if rep_pos_txt == 'whole string':
             filtered_df = whole_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
 
-            ##handle df list에 새로 엎어주기
+            ##handle df에 새로 엎어주기
             for i in range(len(original_index)):
                 handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
         if rep_pos_txt == 'beginning':
             filtered_df = begin_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
             
-            ##handle df list에 새로 엎어주기
+            ##handle df에 새로 엎어주기
             for i in range(len(original_index)):
                 handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
         if rep_pos_txt == 'ending':
             filtered_df = end_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
             
-            ##handle df list에 새로 엎어주기
+            ##handle df에 새로 엎어주기
             for i in range(len(original_index)):
                 handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
@@ -3000,8 +3005,6 @@ class Ui_Deco_LexO(object):
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
         handle_df = addrow(handle_df)
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
-        # for i in range(len(filtered_df)):
-        #     handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         original_index.append(len(handle_df) - 1)
         self.readFiles2(filtered_df)
@@ -3060,9 +3063,6 @@ class Ui_Deco_LexO(object):
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
 
         self.readFiles2(filtered_df)
-
-
-        #return tab_name_dic[self.dataFrame_Tab.currentWidget()]
 
     
 
