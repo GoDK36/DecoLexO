@@ -18,19 +18,20 @@ tab_name_list = []
 
 #original df list
 #열린 df의 원본 파일을 저장하는 리스트
-original_df_list = []
-
+handle_df_list = []
 
 #tab_name dictionary
 tab_name_dic = {}
 
 #handle_df list
 #처리한 df의 데이터를 저장하는 리스트
-handle_df_list = []
+filtered_df_list = []
 
 #new_table list
 new_table_list = []
 
+#인덱스를 저장하는 리스트
+original_index = []
 
 ##Function Code##
 #df을 입력받아 column name들을 지정해주고 df화 해주는 작업을 하는 함수
@@ -146,7 +147,13 @@ def column_name(df):
 #####################################################################
 
 # 입력받은 word와 같은 단어 정보들을 출력하는 함수
-def Equals(df, col, word):
+def Equals(df, col, word, original_index):
+
+    #original_df에서 col에 입력된 column들의 정보들을 
+    # original_df_index에 저장해준다.
+    original_df_index = []
+    for i in range(len(original_df)):
+        original_df_index.append(original_df.loc[i,col])
 
     #입력받은 단어가 1개 이상일 때는 +로 묶여서 들어오기 때문에 입력받은 word에
     # +가 있는지 확인후 존재하면 +단위로 나눈 단어들을 list 형태로 word_lsit에 저장해주고
@@ -168,13 +175,13 @@ def Equals(df, col, word):
     #answer에 일치 정보의 열을 통째로 저장해준다.
     #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
-    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
-    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    #original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
     for i in range (len (word_list)):
         for j in range (len (df)):
             if df.loc[j, col] == word_list[i]:
                 answer = df.iloc[j]
                 filtered_list.append(list(answer))
+                original_index.append(j)
 
     # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
     # 현재 row와 column이 바뀌어 저장되어 있기 때문에
@@ -187,7 +194,12 @@ def Equals(df, col, word):
 
 
 # 입력받은 단어들이 포함되어 있는 단어 정보들을 출력하는 함수
-def Contains(df, col, word):
+def Contains(df, col, word, original_index):
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,col])
+
     if '+' in word:
             word_list = word.split ('+')
     else:
@@ -197,7 +209,7 @@ def Contains(df, col, word):
     #filtered_list에는 찾고자하는 요소에 매칭되는 단어들을 저장할 것이고
     #filtered_index에는 원본 데이터에 있는 찾은 단어의 인덱스를 저장할 것이다.
     filtered_list = []
-    
+
     #i는 word_list에 저장된 단어의 개수를 길이로 설정하고
     #j는 원본데이터의 행의 개수를 길이로 설정한다.
     #df는 원본데이터, col은 찾고자 하는 정보(Lemma, Entry, Catgory..), word는 찾고자 하는 단어.
@@ -205,13 +217,13 @@ def Contains(df, col, word):
     #answer에 일치 정보의 열을 통째로 저장해준다.
     #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
-    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
-    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    #original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
     for i in range (len (word_list)):
         for j in range (len (df)):
             if word[i] in df.loc[j, col]:
                 result = df.iloc[j]
                 filtered_list.append(list(result))
+                original_index.append(j)
 
     # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
     # 현재 row와 column이 바뀌어 저장되어 있기 때문에
@@ -223,7 +235,12 @@ def Contains(df, col, word):
     return filtered_df
 
 #입력받은 단어로 시작하는 단어를 찾아내는 함수
-def Starts_With(df, col, word):
+def Starts_With(df, col, word, original_index):
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,col])
+
     if '+' in word:
             word_list = word.split ('+')
     else:
@@ -234,21 +251,19 @@ def Starts_With(df, col, word):
     #filtered_index에는 원본 데이터에 있는 찾은 단어의 인덱스를 저장할 것이다.
     filtered_list = []
 
-
     #i는 word_list에 저장된 단어의 개수를 길이로 설정하고
     #j는 원본데이터의 행의 개수를 길이로 설정한다.
     #df는 원본데이터, col은 찾고자 하는 정보(Lemma, Entry, Catgory..), word는 찾고자 하는 단어.
     #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어로 시작하면
     #answer에 일치 정보의 열을 통째로 저장해준다.
     #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
-    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
-    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
-    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    #original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
     for i in range (len (word_list)):
         for j in range (len (df)):
             if df.loc[j, col].startswith (word_list[i]):
                 result = df.iloc[j]
                 filtered_list.append(list(result))
+                original_index.append(j)
             
 
     # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
@@ -261,7 +276,12 @@ def Starts_With(df, col, word):
     return filtered_df
 
 #입력 받은 단어로 끝나는 단어를 찾아내는 함수
-def Ends_With(df, col, word):
+def Ends_With(df, col, word, original_index):
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,col])
+
     if '+' in word:
             word_list = word.split ('+')
     else:
@@ -278,14 +298,14 @@ def Ends_With(df, col, word):
     #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어로 끝나면
     #answer에 일치 정보의 열을 통째로 저장해준다.
     #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
-    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
-    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
-    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    #original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
     for i in range (len (word_list)):
         for j in range (len (df)):
             if df.loc[j, col].endswith (word_list[i]):
                 result = df.iloc[j]
                 filtered_list.append(list(result))
+                original_index.append(j)
+            
 
     # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
     # 현재 row와 column이 바뀌어 저장되어 있기 때문에
@@ -297,7 +317,12 @@ def Ends_With(df, col, word):
     return filtered_df
 
 #입력 받은 단어를 포함하지 않는 단어를 찾아내는 함수
-def Is_Empty(df, col, word):
+def Is_Empty(df, col, word, original_index):
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,col])
+
     if '+' in word:
             word_list = word.split ('+')
     else:
@@ -314,14 +339,13 @@ def Is_Empty(df, col, word):
     #df.loc[j, col] => 열마다 돌아가면서 해당 정보와 찾고자 하는 단어가 없으면
     #answer에 일치 정보의 열을 통째로 저장해준다.
     #이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
-    #컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
-    #filtered_index에는 gui상에서 원본 인덱스보다 +1 된 값으로 나오기 때문에 
-    #찾은 데이터의 인덱스 값을 +1해서 넣어준다.
+    #original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
     for i in range (len (word_list)):
         for j in range (len (df)):
             if word_list[i] not in df.loc[j, col]:
                 result = df.iloc[j]
                 filtered_list.append(list(result))
+                original_index.append(j)
 
     # result는 series로 저장되어 있기 때문에 to_frame()으로 df화 해주고
     # 현재 row와 column이 바뀌어 저장되어 있기 때문에
@@ -364,11 +388,16 @@ def Divide(korean_word):
     return r_lst
 
 #입력받은 초성, 중성, 종성에 해당하는 정보를 첫번째 음절에 포함하고 있는 단어를 출력하는 함수.
-def First_Syllable(df, a, b, c):
+def First_Syllable(df, a, b, c, original_index):
     #'*' => any consonants
     #'.' => any vowels
     #'w' => 초성, 중성, 종성에 한글이 들어 있을 때
     #''  => a,b,c에 입력이 안들어 왔을 때
+    global handle_df
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,'Lemma'])
 
     #a, b, c에 들어온 값이 +로 묶여서 들어오면 +단위로 나누어 주어
     #각각 a, b, c에 리스트 형태로 저장해준다.
@@ -384,9 +413,10 @@ def First_Syllable(df, a, b, c):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
+
 
     #df에서 lemma만을 저장하는 코드이다.
     lemma = []
@@ -418,18 +448,22 @@ def First_Syllable(df, a, b, c):
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '*', b: ''
             elif b == '':
@@ -437,18 +471,22 @@ def First_Syllable(df, a, b, c):
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #b에 음소들이 저장되어 있을 때
             #a: '*', b: 'w', c: ['*', '.', '', 'w']
@@ -457,18 +495,22 @@ def First_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
 
         elif a == '.':
@@ -478,37 +520,44 @@ def First_Syllable(df, a, b, c):
         elif a == '':
             #a: '', b: '.'
             if b == '.':
-                 #a: '', b: '.', c: ['*', '.', '', 'w']  
+                #a: '', b: '.', c: ['*', '.', '', 'w']  
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '', b: ''    
             elif b == '':
-                 #a: '', b: '', c: ['*', '.', '', 'w']  
+                #a: '', b: '', c: ['*', '.', '', 'w']  
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '', b: 'w'
             else:
@@ -517,18 +566,22 @@ def First_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
 
         else:
@@ -540,18 +593,22 @@ def First_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 #a: 'w', b: ''
                 elif b == '':
@@ -559,18 +616,22 @@ def First_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 else:
                     #a: 'w', b: 'w'
@@ -579,18 +640,22 @@ def First_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
 
     #입력한 a,b,c의 값에 맞는 정보들을 filtered_list에 저장하고
@@ -612,11 +677,16 @@ def First_Syllable(df, a, b, c):
     return filtered_df
 
 #단어의 두 번째 음절이 입력 받은 a,b,c에 해당 될 때 출력하는 함수
-def Second_Syllable(df, a, b, c):
+def Second_Syllable(df, a, b, c, original_index):
     #'*' => any consonants
     #'.' => any vowels
     #'w' => 초성, 중성, 종성에 한글이 들어 있을 때
     #''  => a,b,c에 입력이 안들어 왔을 때
+    global handle_df
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,'Lemma'])
 
     #a, b, c에 들어온 값이 +로 묶여서 들어오면 +단위로 나누어 주어
     #각각 a, b, c에 리스트 형태로 저장해준다.
@@ -632,9 +702,10 @@ def Second_Syllable(df, a, b, c):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
+
 
     lemma = []
     for i in range(len(df)):
@@ -659,18 +730,22 @@ def Second_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 #a: '*', b: ''
                 elif b == '':
@@ -678,18 +753,22 @@ def Second_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 else:
                     #a: '*', b: 'w'
@@ -698,18 +777,22 @@ def Second_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
         
             elif a == '.':
@@ -722,18 +805,22 @@ def Second_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 #a: '', b: ''
                 elif b == '':
@@ -741,18 +828,22 @@ def Second_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 else:
                     #a: '', b: 'w'
@@ -761,18 +852,22 @@ def Second_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
             else:
                 #a: 'w'
@@ -783,18 +878,22 @@ def Second_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                     #a: 'w', b: ''
                     elif b == '':
@@ -802,18 +901,22 @@ def Second_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
 
                     else:
@@ -823,18 +926,22 @@ def Second_Syllable(df, a, b, c):
                             if c == '*':
                                 if word[2] != ' ':
                                     indexlis.append(lemma.index(lemma[i]))
+                                    original_index.append(original_df_index.index(lemma[i]))
                                     cnt += 1
                             elif c == '.':
                                 if word[2] == ' ':
                                     indexlis.append(lemma.index(lemma[i]))
+                                    original_index.append(original_df_index.index(lemma[i]))
                                     cnt += 1
                             elif c == '':
                                 #if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                             else:
                                 if word[2] in c:
                                     indexlis.append(lemma.index(lemma[i]))
+                                    original_index.append(original_df_index.index(lemma[i]))
                                     cnt += 1
 
         else:
@@ -851,7 +958,7 @@ def Second_Syllable(df, a, b, c):
     for i in indexlis:
         result = df.loc[i]
         filtered_list.append(list(result))
-       
+        
     filtered_header = handle_df.columns.tolist()
     filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
     filtered_df.head()
@@ -859,11 +966,17 @@ def Second_Syllable(df, a, b, c):
     return filtered_df
 
 #뒤에서 두 번째 음절이 입력받은 a,b,c에 해당 될 때 출력 하는 함수
-def Second_to_Last_Syllable(df, a, b, c):
+def Second_to_Last_Syllable(df, a, b, c, original_index):
     #'*' => any consonants
     #'.' => any vowels
     #'w' => 초성, 중성, 종성에 한글이 들어 있을 때
     #''  => a,b,c에 입력이 안들어 왔을 때
+
+    global handle_df
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,'Lemma'])
 
     #a, b, c에 들어온 값이 +로 묶여서 들어오면 +단위로 나누어 주어
     #각각 a, b, c에 리스트 형태로 저장해준다.
@@ -879,7 +992,7 @@ def Second_to_Last_Syllable(df, a, b, c):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
 
@@ -906,18 +1019,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 #a : '*', b: ''
                 elif b == '':
@@ -925,18 +1042,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 else:
                     #a : '*', b: 'w'
@@ -945,18 +1066,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
 
             elif a == '.':
@@ -970,18 +1095,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 #a : '', b: ''
                 elif b == '':
@@ -989,14 +1118,17 @@ def Second_to_Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                 #a : '', b: 'w'
                 else:
@@ -1005,18 +1137,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
             #a : 'w'
             else:  
@@ -1027,18 +1163,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                     #a : 'w', b: ''
                     elif b == '':
@@ -1046,18 +1186,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:   
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                     #a: 'w', b: 'w'
                     else:
@@ -1066,18 +1210,22 @@ def Second_to_Last_Syllable(df, a, b, c):
                             if c == '*':
                                 if word[2] != ' ':
                                     indexlis.append(lemma.index(lemma[i]))
+                                    original_index.append(original_df_index.index(lemma[i]))
                                     cnt += 1
                             elif c == '.':
                                 if word[2] == ' ':
                                     indexlis.append(lemma.index(lemma[i]))
+                                    original_index.append(original_df_index.index(lemma[i]))
                                     cnt += 1
                             elif c == '':
                                 #if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                             else:
                                 if word[2] in c:
                                     indexlis.append(lemma.index(lemma[i]))
+                                    original_index.append(original_df_index.index(lemma[i]))
                                     cnt += 1
 
     #입력한 a,b,c의 값에 맞는 정보들을 filtered_list에 저장하고
@@ -1100,11 +1248,16 @@ def Second_to_Last_Syllable(df, a, b, c):
     return filtered_df
 
 #단어의 마지막 음절이 입력 받은 a,b,c에 해당 될 때 출력하는 함수
-def Last_Syllable(df, a, b, c):
+def Last_Syllable(df, a, b, c, original_index):
     #'*' => any consonants
     #'.' => any vowels
     #'w' => 초성, 중성, 종성에 한글이 들어 있을 때
     #''  => a,b,c에 입력이 안들어 왔을 때
+    global handle_df
+
+    original_df_index = []
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,'Lemma'])
 
     #a, b, c에 들어온 값이 +로 묶여서 들어오면 +단위로 나누어 주어
     #각각 a, b, c에 리스트 형태로 저장해준다.
@@ -1120,7 +1273,7 @@ def Last_Syllable(df, a, b, c):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
 
@@ -1144,18 +1297,22 @@ def Last_Syllable(df, a, b, c):
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '*', b: ''
             elif b == '':
@@ -1163,18 +1320,22 @@ def Last_Syllable(df, a, b, c):
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '*', b: 'w'
             else:
@@ -1183,18 +1344,22 @@ def Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
     
         elif a == '.':
@@ -1208,18 +1373,22 @@ def Last_Syllable(df, a, b, c):
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '*', b: ''
             elif b == '':
@@ -1227,18 +1396,22 @@ def Last_Syllable(df, a, b, c):
                 if c == '*':
                     if word[2] != ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '.':
                     if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                 elif c == '':
                     #if word[2] == ' ':
                     indexlis.append(lemma.index(lemma[i]))
+                    original_index.append(original_df_index.index(lemma[i]))
                     cnt += 1
                 else:
                     if word[2] in c:
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
             #a: '*', b: 'w'
             else:
@@ -1247,18 +1420,22 @@ def Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
         #a: 'w'
         else:  
@@ -1269,18 +1446,22 @@ def Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                 #a: 'w', b: ''
                 elif b == '':
@@ -1288,18 +1469,22 @@ def Last_Syllable(df, a, b, c):
                     if c == '*':
                         if word[2] != ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '.':
                         if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     elif c == '':
                         #if word[2] == ' ':
                         indexlis.append(lemma.index(lemma[i]))
+                        original_index.append(original_df_index.index(lemma[i]))
                         cnt += 1
                     else:
                         if word[2] in c:
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                     #a: 'w', b: 'w', c:['*', '.', '', 'w']
                 else:
@@ -1307,18 +1492,22 @@ def Last_Syllable(df, a, b, c):
                         if c == '*':
                             if word[2] != ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '.':
                             if word[2] == ' ':
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
                         elif c == '':
                             #if word[2] == ' ':
                             indexlis.append(lemma.index(lemma[i]))
+                            original_index.append(original_df_index.index(lemma[i]))
                             cnt += 1
                         else:
                             if word[2] in c:
                                 indexlis.append(lemma.index(lemma[i]))
+                                original_index.append(original_df_index.index(lemma[i]))
                                 cnt += 1
 
     #입력한 a,b,c의 값에 맞는 정보들을 filtered_list에 저장하고
@@ -1336,7 +1525,6 @@ def Last_Syllable(df, a, b, c):
     filtered_header = handle_df.columns.tolist()
     filtered_df = pd.DataFrame(filtered_list, columns=filtered_header)
     filtered_df.head()
-
 
     return filtered_df
 
@@ -1364,17 +1552,16 @@ def add(df, col, add_place, add_text):
     col_nme = df.columns.tolist()
     if add_place == 'beginning':
         for x in first:
-            res.append(add_text + str(x))
+            res.append(add_text + x)
     if add_place == 'ending':
         for x in first:
-            res.append(str(x) + add_text)   
+            res.append(x + add_text)   
     #열 추가
     del df[col]
     df[col] = res
     
     #열 위치 재정렬
     df = df[col_nme]
-
     
     return(df)
 
@@ -1679,8 +1866,10 @@ class Ui_Deco_LexO(object):
 
         alpha = [self.a, self.b, self.c, self.d, self.e, self.f ,self.g, self.h, self.i, self.j, 
                 self.k, self.l, self.m, self.n, self.o, self.p, self.q, self.r, self.s, self.t]
+
         Tab_index = 0
         count = 0
+
         Deco_LexO.setObjectName("Deco_LexO")
         Deco_LexO.resize(709, 732)
         self.centralwidget = QtWidgets.QWidget(Deco_LexO)
@@ -1916,6 +2105,8 @@ class Ui_Deco_LexO(object):
         font.setFamily("Arial")
         self.Edit_function_tab.setFont(font)
         self.Edit_function_tab.setObjectName("Edit_function_tab")
+
+        #Add tab
         self.Add_tab = QtWidgets.QWidget()
         self.Add_tab.setObjectName("Add_tab")
         self.Add_column = QtWidgets.QComboBox(self.Add_tab)
@@ -1979,6 +2170,8 @@ class Ui_Deco_LexO(object):
         self.label_11.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_11.setObjectName("label_11")
         self.Edit_function_tab.addTab(self.Add_tab, "")
+
+        #Remove tab
         self.Remove_tab = QtWidgets.QWidget()
         self.Remove_tab.setObjectName("Remove_tab")
         self.label_15 = QtWidgets.QLabel(self.Remove_tab)
@@ -2042,6 +2235,8 @@ class Ui_Deco_LexO(object):
         self.Remove_start.setFont(font)
         self.Remove_start.setObjectName("Remove_start")
         self.Edit_function_tab.addTab(self.Remove_tab, "")
+
+        #Replace tab
         self.Replace_tab = QtWidgets.QWidget()
         self.Replace_tab.setObjectName("Replace_tab")
         self.Replace_column = QtWidgets.QComboBox(self.Replace_tab)
@@ -2110,6 +2305,8 @@ class Ui_Deco_LexO(object):
         self.label_23.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_23.setObjectName("label_23")
         self.Edit_function_tab.addTab(self.Replace_tab, "")
+
+        #Irregular tab
         self.Irreg_tab = QtWidgets.QWidget()
         self.Irreg_tab.setObjectName("Irreg_tab")
         self.Irreg_cons = QtWidgets.QLineEdit(self.Irreg_tab)
@@ -2160,6 +2357,8 @@ class Ui_Deco_LexO(object):
         self.Push_Duplicaterow.setGeometry(QtCore.QRect(9, 500, 301, 30))
         font = QtGui.QFont()
         font.setFamily("Arial")
+
+        #Push Buttons
         self.Push_Duplicaterow.setFont(font)
         self.Push_Duplicaterow.setObjectName("Push_Duplicaterow")
         self.Push_addrow = QtWidgets.QPushButton(self.Edit_tab)
@@ -2177,6 +2376,8 @@ class Ui_Deco_LexO(object):
         self.tabWidget_1.addTab(self.Edit_tab, "")
         self.gridLayout.addWidget(self.tabWidget_1, 0, 0, 1, 1)
         Deco_LexO.setCentralWidget(self.centralwidget)
+
+        #Menu Section
         self.menubar = QtWidgets.QMenuBar(Deco_LexO)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 709, 21))
         self.menubar.setObjectName("menubar")
@@ -2223,7 +2424,7 @@ class Ui_Deco_LexO(object):
         QtCore.QMetaObject.connectSlotsByName(Deco_LexO)
 
         ##connenct code##
-        
+
         #Menu part connect
         self.actionOpen_file_s.triggered.connect(self.openFiles)
         self.actionSave_file_as.triggered.connect(self.save_as)
@@ -2331,6 +2532,8 @@ class Ui_Deco_LexO(object):
         self.Push_addrow.setText(_translate("Deco_LexO", "Add Row"))
         self.Push_Deleterow.setText(_translate("Deco_LexO", "Delete Row"))
         self.tabWidget_1.setTabText(self.tabWidget_1.indexOf(self.Edit_tab), _translate("Deco_LexO", "Edit"))
+
+        #Menu Section
         self.menuFile.setTitle(_translate("Deco_LexO", "File"))
         self.menuRecent_files.setTitle(_translate("Deco_LexO", "Recent files"))
         self.menuHelp.setTitle(_translate("Deco_LexO", "Help"))
@@ -2347,11 +2550,16 @@ class Ui_Deco_LexO(object):
         self.actionAbout_DecoLexO.setText(_translate("Deco_LexO", "About DecoLexO"))
 
 
-
-
     # 첫번째 파일을 오픈해 줄 때만 파일을 열어주는 함수
     def readFiles(self, vis_df):
         global count
+        global original_index
+
+        ##파일의 인덱스 번호 리스트에 부여
+        for i in range(len(handle_df) - 10, len(handle_df)):
+            original_index.append(i)
+
+
         control_Tw = alpha[count]
         for i in range (len (vis_df.index)):
             for j in range (len (vis_df.columns)):
@@ -2360,7 +2568,7 @@ class Ui_Deco_LexO(object):
         control_Tw.resizeColumnsToContents ()
         control_Tw.resizeRowsToContents ()
         count += 1
-        
+
     # open file이 아닌 데이터 처리로 visualize를 할 때 사용되는 함수
     def readFiles2(self, vis_df):
         control_Tw = alpha[self.dataFrame_Tab.currentIndex()-1]
@@ -2379,10 +2587,10 @@ class Ui_Deco_LexO(object):
 
     #open files를 했을 때 실행 되는 함수
     def openFiles(self):
-        global handle_df, original_df, Tab_index
+        global handle_df, filtered_df, Tab_index
         global count
         global tab_name_dic
-        global handle_df_list, new_table_list
+        global filtered_df_list, new_table_list
         try:
             fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '' , "CSV Files(*.csv)")
             self.new_tab = QtWidgets.QWidget ()
@@ -2397,12 +2605,12 @@ class Ui_Deco_LexO(object):
             tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
             Ofileloc = str (fname).split ("', '")[0][2:]
             original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
-            original_df = column_name (original_read)
-            original_df_list.append(original_df)
-            handle_df = original_df.copy ()
+            handle_df = column_name (original_read)
             handle_df_list.append(handle_df)
+            filtered_df = handle_df.copy ()
+            filtered_df_list.append(filtered_df)
             alpha[count].setColumnCount (len (handle_df.columns))
-            header = original_df.columns
+            header = handle_df.columns
             alpha[count].setHorizontalHeaderLabels (header)
             alpha[count].setRowCount (len (handle_df.index))
             self.readFiles (handle_df)
@@ -2410,7 +2618,6 @@ class Ui_Deco_LexO(object):
             self.dataFrame_Tab.setCurrentIndex(Tab_index)
         except Exception:
             pass
-  
 
     def clear(self):
         self.FEntry_Input.setText('')
@@ -2428,15 +2635,12 @@ class Ui_Deco_LexO(object):
         self.FSecL_1.setText(''), self.FSecL_2.setText(''), self.FSecL_3.setText('')
         self.FLast_1.setText(''), self.FLast_2.setText(''), self.FLast_3.setText('')
 
-        print(self.dataFrame_Tab.currentIndex())
-
 
     ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
     def save_as(self):
         global handle_df
-        global original_df
 
-        result_df =  handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        result_df =  handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
         sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Location', '' , 'CSV File (*.csv);; DIC File (*.dic)')
         
         sfileloc = str (sname).split ("', '")[0][2:]
@@ -2444,18 +2648,15 @@ class Ui_Deco_LexO(object):
         sfileform = sfileloc.split('.')[-1]
 
         if sfileform == 'csv':
-            col_nme = original_df.columns.tolist()
+            col_nme = handle_df.columns.tolist()
             result_df = result_df[col_nme]
-            print(result_df)
             return (result_df.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
         if sfileform == 'dic':
-            col_nme = original_df.columns.tolist()
+            col_nme = handle_df.columns.tolist()
             result_df = result_df[col_nme]
             return (df2dic(result_df, sfileloc))
 
         
-
-
     #filter part에서 filter 버튼을 누르면 실행되는 함수
     #각각 상황에 맞게 위에 선언된 함수들을 연결해 주고
     #상황에 맞게 나오느 결과들은 전역변수로 선언되 handle_df에 저장해준 후
@@ -2464,9 +2665,12 @@ class Ui_Deco_LexO(object):
     def filter_function(self):
         global handle_df
         global filtered_df
+        global original_index
 
-        
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        original_index = []
+
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
         
         #Lemma에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
         if self.FLemma_Input.text () != '':
@@ -2478,17 +2682,24 @@ class Ui_Deco_LexO(object):
 
             #statelis에 있는 value값에 따라 해당 코드를 실행시켜준다.
             if statelis[0] == 1:
-                handle_df = Equals (handle_df, 'Lemma', self.FLemma_Input.text ())
-            if statelis[0] == 2:
-                handle_df = Starts_With (handle_df, 'Lemma', self.FLemma_Input.text ())
-            if statelis[0] == 3:
-                handle_df = Ends_With (handle_df, 'Lemma', self.FLemma_Input.text())
-            if statelis[0] == 4:
-                handle_df = Contains (handle_df, 'Lemma', self.FLemma_Input.text())
-            if statelis[0] == 5:
-                handle_df = Is_Empty (handle_df, 'Lemma', self.FLemma_Input.text())
+                filtered_df = Equals (filtered_df, 'Lemma', self.FLemma_Input.text (),original_index)
 
-            self.readFiles2 (handle_df)
+            if statelis[0] == 2:
+                filtered_df = Starts_With (filtered_df, 'Lemma', self.FLemma_Input.text (),original_index)
+
+            if statelis[0] == 3:
+                filtered_df = Ends_With (filtered_df, 'Lemma', self.FLemma_Input.text(),original_index)
+
+            if statelis[0] == 4:
+                filtered_df = Contains (filtered_df, 'Lemma', self.FLemma_Input.text(),original_index)
+
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (filtered_df, 'Lemma', self.FLemma_Input.text(),original_index)
+
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+            self.readFiles2 (filtered_df)
         
         #Entry에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
         if self.FEntry_Input.text () != '':
@@ -2497,17 +2708,24 @@ class Ui_Deco_LexO(object):
             statelis.insert (0, FComboDict[self.FEntryCombo.currentText ()])
             
             if statelis[0] == 1:
-                handle_df = Equals (handle_df, 'Entry', self.FEntry_Input.text ())
-            if statelis[0] == 2:
-                handle_df = Starts_With (handle_df, 'Entry', self.FEntry_Input.text ())
-            if statelis[0] == 3:
-                handle_df = Ends_With (handle_df, 'Entry', self.FEntry_Input.text())
-            if statelis[0] == 4:
-                handle_df = Contains (handle_df, 'Entry', self.FEntry_Input.text())
-            if statelis[0] == 5:
-                handle_df = Is_Empty (handle_df, 'Entry', self.FEntry_Input.text())
+                filtered_df = Equals (filtered_df, 'Entry', self.FEntry_Input.text (),original_index)
 
-            self.readFiles2 (handle_df)
+            if statelis[0] == 2:
+                filtered_df = Starts_With (filtered_df, 'Entry', self.FEntry_Input.text (),original_index)
+
+            if statelis[0] == 3:
+                filtered_df = Ends_With (filtered_df, 'Entry', self.FEntry_Input.text(),original_index)
+
+            if statelis[0] == 4:
+                filtered_df = Contains (filtered_df, 'Entry', self.FEntry_Input.text(),original_index)
+
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (filtered_df, 'Entry', self.FEntry_Input.text(),original_index)
+
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+            self.readFiles2 (filtered_df)
         
 
         #Category에 원하는 정보가 들어왔을 때 실행되는 코드
@@ -2517,17 +2735,24 @@ class Ui_Deco_LexO(object):
             statelis.insert (0, FComboDict[self.FCateCombo.currentText ()])
             
             if statelis[0] == 1:
-                handle_df = Equals (handle_df, 'Category', self.FCate_Input.text ())
-            if statelis[0] == 2:
-                handle_df = Starts_With (handle_df, 'Category', self.FCate_Input.text ())
-            if statelis[0] == 3:
-                handle_df = Ends_With (handle_df, 'Category', self.FCate_Input.text())
-            if statelis[0] == 4:
-                handle_df = Contains (handle_df, 'Category', self.FCate_Input.text())
-            if statelis[0] == 5:
-                handle_df = Is_Empty (handle_df, 'Category', self.FCate_Input.text())
+                filtered_df = Equals (filtered_df, 'Category', self.FCate_Input.text (),original_index)
 
-            self.readFiles2 (handle_df)
+            if statelis[0] == 2:
+                filtered_df = Starts_With (filtered_df, 'Category', self.FCate_Input.text (),original_index)
+
+            if statelis[0] == 3:
+                filtered_df = Ends_With (filtered_df, 'Category', self.FCate_Input.text(),original_index)
+
+            if statelis[0] == 4:
+                filtered_df = Contains (filtered_df, 'Category', self.FCate_Input.text(),original_index)
+
+            if statelis[0] == 5:
+                filtered_df = Is_Empty (filtered_df, 'Category', self.FCate_Input.text(),original_index)
+
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+            self.readFiles2 (filtered_df)
         
         #Information에 원하는 정보가 들어있을 경우
         if self.FInfo_Input.text () != '':
@@ -2538,68 +2763,99 @@ class Ui_Deco_LexO(object):
             #사용자가 colum name을 직접 설정할 경우
             if self.FInfo_Colname.text() != '':
                 if statelis[0] == 1:
-                    handle_df = Equals (handle_df, self.FInfo_Colname.text(), self.FInfo_Input.text ())
-                if statelis[0] == 2:
-                    handle_df = Starts_With (handle_df, self.FInfo_Colname.text(), self.FInfo_Input.text ())
-                if statelis[0] == 3:
-                    handle_df = Ends_With (handle_df, self.FInfo_Colname.text(), self.FInfo_Input.text())
-                if statelis[0] == 4:
-                    handle_df = Contains (handle_df, self.FInfo_Colname.text(), self.FInfo_Input.text())
-                if statelis[0] == 5:
-                    handle_df = Is_Empty (handle_df, self.FInfo_Colname.text(), self.FInfo_Input.text())
+                    filtered_df = Equals (filtered_df, self.FInfo_Colname.text(), self.FInfo_Input.text (),original_index)
 
-                self.readFiles2 (handle_df)
+                if statelis[0] == 2:
+                    filtered_df = Starts_With (filtered_df, self.FInfo_Colname.text(), self.FInfo_Input.text (),original_index)
+
+                if statelis[0] == 3:
+                    filtered_df = Ends_With (filtered_df, self.FInfo_Colname.text(), self.FInfo_Input.text(),original_index)
+
+                if statelis[0] == 4:
+                    filtered_df = Contains (filtered_df, self.FInfo_Colname.text(), self.FInfo_Input.text(),original_index)
+
+                if statelis[0] == 5:
+                    filtered_df = Is_Empty (filtered_df, self.FInfo_Colname.text(), self.FInfo_Input.text(),original_index)
+
+                ##filtered list에 새로 엎어주기
+                filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+                self.readFiles2 (filtered_df)
             
             #사용자가 column name을 설정하지 않은 경우
             else:
                 if statelis[0] == 1:
-                    handle_df = Equals (handle_df, 'Lemma', self.FLemma_Input.text ())
-                if statelis[0] == 2:
-                    handle_df = Starts_With (handle_df, 'Lemma', self.FLemma_Input.text ())
-                if statelis[0] == 3:
-                    handle_df = Ends_With (handle_df, 'Lemma', self.FLemma_Input.text())
-                if statelis[0] == 4:
-                    handle_df = Contains (handle_df, 'Lemma', self.FLemma_Input.text())
-                if statelis[0] == 5:
-                    handle_df = Is_Empty (handle_df, 'Lemma', self.FLemma_Input.text())
-            
+                    filtered_df = Equals (filtered_df, 'Lemma', self.FLemma_Input.text (),original_index)
 
-            self.readFiles2 (handle_df)
+                if statelis[0] == 2:
+                    filtered_df = Starts_With (filtered_df, 'Lemma', self.FLemma_Input.text (),original_index)
+
+                if statelis[0] == 3:
+                    filtered_df = Ends_With (filtered_df, 'Lemma', self.FLemma_Input.text(),original_index)
+
+                if statelis[0] == 4:
+                    filtered_df = Contains (filtered_df, 'Lemma', self.FLemma_Input.text(),original_index)
+
+                if statelis[0] == 5:
+                    filtered_df = Is_Empty (filtered_df, 'Lemma', self.FLemma_Input.text(),original_index)
+
+                ##filtered list에 새로 엎어주기
+                filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+        
+                self.readFiles2 (filtered_df)
 
         #Fisrt Syllable
         if self.FFirst_1.text() != '' or self.FFirst_2.text() != '' or self.FFirst_3.text() != '':
-            handle_df = First_Syllable(handle_df, self.FFirst_1.text(), self.FFirst_2.text(), self.FFirst_3.text())
+            filtered_df = First_Syllable(filtered_df, self.FFirst_1.text(), self.FFirst_2.text(), self.FFirst_3.text(),original_index)
 
-            self.readFiles2 (handle_df)
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+            self.readFiles2 (filtered_df)
 
         #Second Syllable  
         if self.FSec_1.text() != '' or self.FSec_2.text() != '' or self.FSec_3.text() != '':
-            handle_df = Second_Syllable(handle_df, self.FSec_1.text(), self.FSec_2.text(), self.FSec_3.text())
+            filtered_df = Second_Syllable(filtered_df, self.FSec_1.text(), self.FSec_2.text(), self.FSec_3.text(),original_index)
 
-            self.readFiles2 (handle_df)
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+            self.readFiles2 (filtered_df)
 
         #Second to Last syllable
         if self.FSecL_1.text() != '' or self.FSecL_2.text() != '' or self.FSecL_3.text() != '':
-            handle_df = Second_to_Last_Syllable(handle_df, self.FSecL_1.text(), self.FSecL_2.text(), self.FSecL_3.text())
+            filtered_df = Second_to_Last_Syllable(filtered_df, self.FSecL_1.text(), self.FSecL_2.text(), self.FSecL_3.text(),original_index)
 
-            self.readFiles2 (handle_df)
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
+
+            self.readFiles2 (filtered_df)
         
         #Last Syllable
         if self.FLast_1.text() != '' or self.FLast_2.text() != '' or self.FLast_3.text() != '':
-            handle_df = Last_Syllable(handle_df, self.FLast_1.text(), self.FLast_2.text(), self.FLast_3.text())
+            filtered_df = Last_Syllable(filtered_df, self.FLast_1.text(), self.FLast_2.text(), self.FLast_3.text(),original_index)
 
-            self.readFiles2 (handle_df)
+            ##filtered list에 새로 엎어주기
+            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
 
-        handle_df_list[self.dataFrame_Tab.currentIndex() -1 ] = handle_df
-        print( handle_df_list[self.dataFrame_Tab.currentIndex() -1 ] )
+            self.readFiles2 (filtered_df)
 
     #show버튼을 누르면 원본 데이터를 보여주는 함수
     def show_all(self):
-        global handle_df
+        global filtered_df_list
+        global handle_df_list
+        global original_index
 
-        print(self.dataFrame_Tab.currentIndex())
-        handle_df = original_df_list[self.dataFrame_Tab.currentIndex()-1].copy()
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
 
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df.copy()
+
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        ##파일의 인덱스 번호 리스트에 부여
+        for i in range(len(handle_df) - 10, len(handle_df)):
+            original_index.append(i)
+        
         self.readFiles2 (handle_df)
 
 
@@ -2611,40 +2867,61 @@ class Ui_Deco_LexO(object):
     #Add function에서 ok를 누르면 실행될 함수
 
     def add_function(self):
-        global handle_df
+        global filtered_df
+        
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
         ##입력값 텍스트화
         add_col_txt = str(self.Add_column.currentText())  ##combobox는 currentText()사용
         add_pos_txt = str(self.Add_position.currentText())
         add_new_txt = str(self.Add_oldText.text())
-        handle_df = add(handle_df, add_col_txt, add_pos_txt, add_new_txt) ##새로운 변수에 저장하기
-        #     handle_df (작업창에 떠있는 데이터프레임),
+        filtered_df = add(filtered_df, add_col_txt, add_pos_txt, add_new_txt) ##새로운 변수에 저장하기
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
 
-        self.readFiles2 (handle_df) ##readfiles함수에 넣으면 나타남.    
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        for i in range(len(original_index)):
+            handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+
+        self.readFiles2 (filtered_df) ##readfiles함수에 넣으면 나타남.    
 
     #Remove Function에서 ok를 누르면 실행될 함수
 
     def remove_function(self):
-        global handle_df
+        global filtered_df
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
 
         ##입력값 텍스트화
         rem_col_txt = str(self.Remove_column.currentText())
         rem_pos_txt = str(self.Remove_position.currentText())
         rem_old_txt = str(self.Remove_oldText.text())
         
-        handle_df = rmv(handle_df, rem_col_txt, rem_pos_txt, rem_old_txt)
+        filtered_df = rmv(filtered_df, rem_col_txt, rem_pos_txt, rem_old_txt)
 
-        self.readFiles2 (handle_df)
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
+
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        for i in range(len(original_index)):
+            handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        self.readFiles2 (filtered_df)
 
     #Replace Function에서 ok를 누르면 실행될 함수
     
     def replace_function(self):
-        global handle_df
+        global filtered_df
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
 
         ##입력값 텍스트화
         rep_col_txt = str(self.Replace_column.currentText())
@@ -2653,60 +2930,116 @@ class Ui_Deco_LexO(object):
         rep_new_txt = str(self.Replace_newtext.text())
         
         if rep_pos_txt == 'anywhere':
-            handle_df = anywhere_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            filtered_df = anywhere_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            
+            ##handle df list에 새로 엎어주기
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
         if rep_pos_txt == 'whole string':
-            handle_df = whole_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
-        if rep_pos_txt == 'beginning':
-            handle_df = begin_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
-        if rep_pos_txt == 'ending':
-            handle_df = end_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            filtered_df = whole_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
 
-        self.readFiles2(handle_df)
+            ##handle df list에 새로 엎어주기
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+        if rep_pos_txt == 'beginning':
+            filtered_df = begin_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            
+            ##handle df list에 새로 엎어주기
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+        if rep_pos_txt == 'ending':
+            filtered_df = end_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            
+            ##handle df list에 새로 엎어주기
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
+
+        ##handle df list에 새로 엎어주기
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        self.readFiles2(filtered_df)
 
     #Replace Function에서 ok를 누르면 실행될 함수
 
     def irregular_function(self):
-        global handle_df
+        global filtered_df
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
 
         fin_con_txt = str(self.Irreg_cons.text())
         old_inf_txt = str(self.Irreg_oldinflec.text())
         new_inf_txt = str(self.irreg_newinflec.text())
 
+        filtered_df = irreg(filtered_df, fin_con_txt, old_inf_txt, new_inf_txt)
+
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
+
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
         handle_df = irreg(handle_df, fin_con_txt, old_inf_txt, new_inf_txt)
 
-        self.readFiles2(handle_df)
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        self.readFiles2(filtered_df)
 
     ##Add row 버튼을 누르면 실행될 함수
 
     def add_row_function(self):
-        global handle_df
+        global filtered_df
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
 
+        filtered_df = addrow(filtered_df)
+
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
+
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
         handle_df = addrow(handle_df)
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+        # for i in range(len(filtered_df)):
+        #     handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
-        self.readFiles2(handle_df)
+        original_index.append(len(handle_df) - 1)
+        self.readFiles2(filtered_df)
 
     ##Delete row 버튼을 누르면 실행될 함수
 
     def delete_row_function(self):
-        global handle_df
+        global filtered_df
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
 
-        handle_df = delrow(handle_df)
+        filtered_df = delrow(filtered_df)
+
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
+
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        ##filtered_df의 마지막 행 인덱스 번호 가져오기
+        delete_index = original_index[-1]
+        original_index.pop()
+
+        ##그 번호로 handle_df의 해당 행 삭제하기
+        handle_df = handle_df.drop([handle_df.index[delete_index]])
+
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        handle_df = handle_df.reset_index(drop=True, inplace=True)
         
-        self.readFiles2(handle_df)
+        self.readFiles2(filtered_df)
 
         
     ##Duplicate row 버튼을 누르면 실행될 함수
     def duplicate_row_function(self):
-        global handle_df
+        global filtered_df
         global alpha
 
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
 
         cell_idx = alpha[self.dataFrame_Tab.currentIndex()-1].selectedIndexes() #선택한 행의 인덱스 정보 반환하는 함수
 
@@ -2714,11 +3047,20 @@ class Ui_Deco_LexO(object):
         # sel_cell = self.new_tableWidget.currentRow()  선택한 단일의 행의 인덱스 값(정수)반환하는 함수 
 
         for i in sel_cells:
+            filtered_df = duprow(filtered_df, i)
+
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
+
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        for i in sel_cells:
             handle_df = duprow(handle_df, i)
 
-        self.readFiles2(handle_df)
-        
-       
+        handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        self.readFiles2(filtered_df)
+
 
         #return tab_name_dic[self.dataFrame_Tab.currentWidget()]
 

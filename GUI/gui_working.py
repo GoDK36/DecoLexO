@@ -393,7 +393,6 @@ def First_Syllable(df, a, b, c, original_index):
     #'.' => any vowels
     #'w' => 초성, 중성, 종성에 한글이 들어 있을 때
     #''  => a,b,c에 입력이 안들어 왔을 때
-
     global handle_df
 
     original_df_index = []
@@ -414,7 +413,7 @@ def First_Syllable(df, a, b, c, original_index):
         pass
 
     if '+' in c:
-       c = c.split ('+')
+        c = c.split ('+')
     else:
         pass
 
@@ -683,7 +682,6 @@ def Second_Syllable(df, a, b, c, original_index):
     #'.' => any vowels
     #'w' => 초성, 중성, 종성에 한글이 들어 있을 때
     #''  => a,b,c에 입력이 안들어 왔을 때
-
     global handle_df
 
     original_df_index = []
@@ -2672,6 +2670,7 @@ class Ui_Deco_LexO(object):
         original_index = []
 
         filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
         
         #Lemma에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
         if self.FLemma_Input.text () != '':
@@ -2882,9 +2881,11 @@ class Ui_Deco_LexO(object):
         ##handle df list에 새로 엎어주기
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
 
-        handle_df = add(handle_df, add_col_txt, add_pos_txt, add_new_txt)
+        for i in range(len(original_index)):
+            handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
 
         self.readFiles2 (filtered_df) ##readfiles함수에 넣으면 나타남.    
 
@@ -2907,7 +2908,8 @@ class Ui_Deco_LexO(object):
         ##handle df list에 새로 엎어주기
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
 
-        handle_df = rmv(handle_df, rem_col_txt, rem_pos_txt, rem_old_txt)
+        for i in range(len(original_index)):
+            handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
 
@@ -2931,22 +2933,26 @@ class Ui_Deco_LexO(object):
             filtered_df = anywhere_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
             
             ##handle df list에 새로 엎어주기
-            handle_df = anywhere_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
         if rep_pos_txt == 'whole string':
             filtered_df = whole_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
 
             ##handle df list에 새로 엎어주기
-            handle_df = whole_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
         if rep_pos_txt == 'beginning':
             filtered_df = begin_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
             
             ##handle df list에 새로 엎어주기
-            handle_df = begin_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
         if rep_pos_txt == 'ending':
             filtered_df = end_rpl(filtered_df, rep_col_txt, rep_old_txt, rep_new_txt)
             
             ##handle df list에 새로 엎어주기
-            handle_df = end_rpl(handle_df, rep_col_txt, rep_old_txt, rep_new_txt)
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = filtered_df
 
