@@ -1803,20 +1803,24 @@ def df2dic(df, filepath):
     ind_l = len(df.index) #데이터의 총 개수(index 길이)
 
     for i in range(0, ind_l):
-        dic = "ㆍ" #dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
+        #dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
+        dic = "ㆍ" 
         ind_lst = list(df.iloc[i]) 
         inf_lst = rmvspc(ind_lst) #중복되는 요소인 ''을 하나로 줄이기
         inf_lst.remove('') #''는 필요 없으므로 삭제
         lem = inf_lst[0] #lemma 추출
         sep_lem = spc.join(lem) #lemma의 각 음절마다 ㆍ삽입
         dic = dic + sep_lem + com + lem + dot #문자열 형식으로 합치기('ㆍ가ㆍ결,가결.' 이 부분까지 완성)
+
         #category의 ns01과 같은 정보를 ns만 따로 떼어내기
         cat = inf_lst[1] 
         dic = dic + cat[0:2]
+
         #그 외의 info들을 모두 'ZNZ+LEO+SLB' 이런 형식으로 더해주기
         for x in range(2, len(inf_lst)):
             inf = inf_lst[x]
             dic = dic + plus + inf
+            
         #ns 뒤에 붙은 숫자 정보를 'JN#JN숫자'형식으로 바꾸어주기
         last = plus + "JN#JN" + cat[-2:]
         dic1 = dic + last
@@ -1843,6 +1847,9 @@ class Ui_Deco_LexO(object):
         global Tab_index
         global count
         global alpha
+
+        ##각 창에 대한 정보들을 a~t까지 20개로 한정
+        ##이 정보들로 현재 열려있는 창에 대한 인덱스 번호를 불러와 작업을 할 수 있다.
         self.a = QtWidgets.QTableWidget
         self.b = QtWidgets.QTableWidget
         self.c = QtWidgets.QTableWidget
@@ -2914,6 +2921,8 @@ class Ui_Deco_LexO(object):
             handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+        
+        print(handle_df)
 
         self.readFiles2 (filtered_df)
 
