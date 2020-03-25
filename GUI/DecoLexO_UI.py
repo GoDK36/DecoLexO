@@ -20,15 +20,9 @@ tab_name_list = []
 #열린 df의 원본 파일을 저장하는 리스트
 handle_df_list = []
 
-#tab_name dictionary
-tab_name_dic = {}
-
 #handle_df list
 #처리한 df의 데이터를 저장하는 리스트
 filtered_df_list = []
-
-#new_table list
-new_table_list = []
 
 #인덱스를 저장하는 리스트
 original_index = []
@@ -2450,6 +2444,9 @@ class Ui_Deco_LexO(object):
         self.FFiltering_Button.released.connect (self.filter_function)
         self.FClear_Button.released.connect(self.clear)
 
+        
+        # self.alpha[self.dataFrame_Tab.currentIndex()-1].doubleClicked.connect(self.onClicked_table)
+
     
 
     def retranslateUi(self, Deco_LexO):
@@ -2596,8 +2593,10 @@ class Ui_Deco_LexO(object):
     def openFiles(self):
         global handle_df, filtered_df, Tab_index
         global count
-        global tab_name_dic
-        global filtered_df_list, new_table_list
+        global cnt
+        global filtered_df_list
+
+        cnt = 0
         try:
             fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '' , "CSV Files(*.csv)")
             self.new_tab = QtWidgets.QWidget ()
@@ -2623,6 +2622,7 @@ class Ui_Deco_LexO(object):
             self.readFiles (handle_df)
             Tab_index += 1
             self.dataFrame_Tab.setCurrentIndex(Tab_index)
+            alpha[self.dataFrame_Tab.currentIndex()-1].cellChanged.connect(self.onClicked_table)
         except Exception:
             pass
 
@@ -2644,7 +2644,6 @@ class Ui_Deco_LexO(object):
         self.FSecL_1.setText(''), self.FSecL_2.setText(''), self.FSecL_3.setText('')
         self.FLast_1.setText(''), self.FLast_2.setText(''), self.FLast_3.setText('')
 
-
     ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
     def save_as(self):
         global handle_df
@@ -2663,9 +2662,25 @@ class Ui_Deco_LexO(object):
         if sfileform == 'dic':
             col_nme = handle_df.columns.tolist()
             result_df = result_df[col_nme]
-            return (df2dic(result_df, sfileloc))
+            return (df2dic(result_df, sfileloc))     
 
-        
+    ##직접 입력해서 데이터프레임 바꾸기
+    def onClicked_table(self,row,column):
+
+        or_clicked_index = []
+        or_clicked_index.append(row)
+
+        # for i in range(len(or_clicked_index)):
+        text = alpha[self.dataFrame_Tab.currentIndex()-1].item(row, column).text()
+        column_temp = filtered_df_list[self.dataFrame_Tab.currentIndex()-1].columns.tolist()
+        filtered_df_list[self.dataFrame_Tab.currentIndex()-1].at[row, column_temp[column]] = text
+        handle_df_list[self.dataFrame_Tab.currentIndex()-1].at[or_clicked_index[0], column_temp[column]] = text
+
+        # print(filtered_df_list[self.dataFrame_Tab.currentIndex()-1])
+
+        # print(handle_df_list[self.dataFrame_Tab.currentIndex()-1])
+
+
     #filter part에서 filter 버튼을 누르면 실행되는 함수
     #각각 상황에 맞게 위에 선언된 함수들을 연결해 주고
     #상황에 맞게 나오느 결과들은 전역변수로 선언되 handle_df에 저장해준 후
@@ -2848,6 +2863,7 @@ class Ui_Deco_LexO(object):
             filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
 
             self.readFiles2 (filtered_df)
+        
 
     #show버튼을 누르면 원본 데이터를 보여주는 함수
     def show_all(self):
@@ -2865,7 +2881,7 @@ class Ui_Deco_LexO(object):
         for i in range(len(handle_df) - 10, len(handle_df)):
             original_index.append(i)
         
-        self.readFiles2 (handle_df)
+        self.readFiles2 (filtered_df)
 
 
     ######################
@@ -2921,8 +2937,6 @@ class Ui_Deco_LexO(object):
             handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
-        
-        print(handle_df)
 
         self.readFiles2 (filtered_df)
 
