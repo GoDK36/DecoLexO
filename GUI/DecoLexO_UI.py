@@ -2622,7 +2622,7 @@ class Ui_Deco_LexO(object):
             self.readFiles (handle_df)
             Tab_index += 1
             self.dataFrame_Tab.setCurrentIndex(Tab_index)
-            alpha[self.dataFrame_Tab.currentIndex()-1].cellChanged.connect(self.onClicked_table)
+            alpha[self.dataFrame_Tab.currentIndex()-1].cellClicked.connect(self.onClicked_table)
         except Exception:
             pass
 
