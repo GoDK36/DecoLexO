@@ -2697,7 +2697,10 @@ class Ui_Deco_LexO(object):
         
         
 
-    
+    ##TODO: 추가해야하는 목록
+    ##       - Merge 기능
+    ##       - 현재 창 Save 기능
+    ##       - Filter에서 Entry 삭제
 
         
     #filter part에서 filter 버튼을 누르면 실행되는 함수
