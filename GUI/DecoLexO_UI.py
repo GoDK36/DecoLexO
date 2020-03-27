@@ -146,8 +146,8 @@ def Equals(df, col, word, original_index):
     #original_df에서 col에 입력된 column들의 정보들을 
     # original_df_index에 저장해준다.
     original_df_index = []
-    for i in range(len(original_df)):
-        original_df_index.append(original_df.loc[i,col])
+    for i in range(len(handle_df)):
+        original_df_index.append(handle_df.loc[i,col])
 
     #입력받은 단어가 1개 이상일 때는 +로 묶여서 들어오기 때문에 입력받은 word에
     # +가 있는지 확인후 존재하면 +단위로 나눈 단어들을 list 형태로 word_lsit에 저장해주고
@@ -2623,6 +2623,7 @@ class Ui_Deco_LexO(object):
             Tab_index += 1
             self.dataFrame_Tab.setCurrentIndex(Tab_index)
             alpha[self.dataFrame_Tab.currentIndex()-1].cellClicked.connect(self.onClicked_table)
+            # alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
         except Exception:
             pass
 
@@ -2665,22 +2666,40 @@ class Ui_Deco_LexO(object):
             return (df2dic(result_df, sfileloc))     
 
     ##직접 입력해서 데이터프레임 바꾸기
-    def onClicked_table(self,row,column):
-
+    def onClicked_table(self, row, column):
+        global cnt
+        global original_index
         or_clicked_index = []
         or_clicked_index.append(row)
-
-        # for i in range(len(or_clicked_index)):
+        print(or_clicked_index)
+        print(original_index)
+    
         text = alpha[self.dataFrame_Tab.currentIndex()-1].item(row, column).text()
         column_temp = filtered_df_list[self.dataFrame_Tab.currentIndex()-1].columns.tolist()
         filtered_df_list[self.dataFrame_Tab.currentIndex()-1].at[row, column_temp[column]] = text
-        handle_df_list[self.dataFrame_Tab.currentIndex()-1].at[or_clicked_index[0], column_temp[column]] = text
+        print(row)
+        handle_df_list[self.dataFrame_Tab.currentIndex()-1].at[original_index[row],column_temp[column]] = text
+        print(handle_df_list[self.dataFrame_Tab.currentIndex()-1])
+        print(filtered_df_list[self.dataFrame_Tab.currentIndex()-1])
 
-        # print(filtered_df_list[self.dataFrame_Tab.currentIndex()-1])
 
-        # print(handle_df_list[self.dataFrame_Tab.currentIndex()-1])
+    ##keypressed enter키 관련 함수인데 뭔지 잘 모르겠다
+    def keyPressEvent(self, qKeyEvent):
+        print(qKeyEvent.key())
+        if qKeyEvent.key() == QtCore.Qt.Key_Return: 
+            self.filter_function()
+        else:
+            super().keyPressEvent(qKeyEvent)
+    
+    ##TODO: Entered를 눌렀을때 반응하는 명령어 찾기 / 안되면 os에서 enter를 눌렀을때 반응이 일어나는 함수 만들기
+    def entered_table(self, row):
+        print(int(row))
+        
+        
 
+    
 
+        
     #filter part에서 filter 버튼을 누르면 실행되는 함수
     #각각 상황에 맞게 위에 선언된 함수들을 연결해 주고
     #상황에 맞게 나오느 결과들은 전역변수로 선언되 handle_df에 저장해준 후
@@ -2863,7 +2882,6 @@ class Ui_Deco_LexO(object):
             filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
 
             self.readFiles2 (filtered_df)
-        
 
     #show버튼을 누르면 원본 데이터를 보여주는 함수
     def show_all(self):
@@ -2881,7 +2899,7 @@ class Ui_Deco_LexO(object):
         for i in range(len(handle_df) - 10, len(handle_df)):
             original_index.append(i)
         
-        self.readFiles2 (filtered_df)
+        self.readFiles2 (handle_df)
 
 
     ######################
