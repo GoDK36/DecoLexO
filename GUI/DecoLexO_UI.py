@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import os, re
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import Qt
 from collections import OrderedDict
 
 #tab_nme list
@@ -2623,7 +2624,7 @@ class Ui_Deco_LexO(object):
             Tab_index += 1
             self.dataFrame_Tab.setCurrentIndex(Tab_index)
             alpha[self.dataFrame_Tab.currentIndex()-1].cellClicked.connect(self.onClicked_table)
-            # alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
+            # alpha[self.dataFrame_Tab.currentIndex()-1].currentItemChanged.connect(self.entered_table)
         except Exception:
             pass
 
@@ -2673,23 +2674,22 @@ class Ui_Deco_LexO(object):
         or_clicked_index.append(row)
         print(or_clicked_index)
         print(original_index)
-    
+
         text = alpha[self.dataFrame_Tab.currentIndex()-1].item(row, column).text()
         column_temp = filtered_df_list[self.dataFrame_Tab.currentIndex()-1].columns.tolist()
         filtered_df_list[self.dataFrame_Tab.currentIndex()-1].at[row, column_temp[column]] = text
         print(row)
         handle_df_list[self.dataFrame_Tab.currentIndex()-1].at[original_index[row],column_temp[column]] = text
-        print(handle_df_list[self.dataFrame_Tab.currentIndex()-1])
+        # print(handle_df_list[self.dataFrame_Tab.currentIndex()-1])
         print(filtered_df_list[self.dataFrame_Tab.currentIndex()-1])
 
 
-    ##keypressed enter키 관련 함수인데 뭔지 잘 모르겠다
-    def keyPressEvent(self, qKeyEvent):
-        print(qKeyEvent.key())
-        if qKeyEvent.key() == QtCore.Qt.Key_Return: 
-            self.filter_function()
-        else:
-            super().keyPressEvent(qKeyEvent)
+    ##keypressed enter키 관련 함수인데 뭔지 잘 모르겠다.
+    # # def keyPressEvent(self, qKeyEvent):
+    #     print(qKeyEvent.key())
+    #     if qKeyEvent.key() == QtCore.Qt.Key_Enter: 
+    #         print('entered!')
+    #         self.onClicked_table()
     
     ##TODO: Entered를 눌렀을때 반응하는 명령어 찾기 / 안되면 os에서 enter를 눌렀을때 반응이 일어나는 함수 만들기
     def entered_table(self, row):
@@ -3108,7 +3108,14 @@ class Ui_Deco_LexO(object):
 
         self.readFiles2(filtered_df)
 
-    
+
+class Deco_LexO(QtWidgets.QMainWindow, Ui_Deco_LexO):
+    def __init__(self, parent=None):
+        QtWidgets.QMainWindow.__init__(self, parent=parent)
+        self.setupUi(self)
+
+    def keyPressEvent(self, e):
+        print(event.key())
 
 if __name__ == "__main__":
     import sys
