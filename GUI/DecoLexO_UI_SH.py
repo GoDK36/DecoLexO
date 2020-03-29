@@ -2682,7 +2682,7 @@ class Ui_Deco_LexO(object):
         print(filtered_df_list[self.dataFrame_Tab.currentIndex()-1])
     
     def entered_table(self):
-
+        global original_index
         colum = alpha[self.dataFrame_Tab.currentIndex()-1].currentColumn()
         row = alpha[self.dataFrame_Tab.currentIndex()-1].currentRow()
 
@@ -2693,14 +2693,10 @@ class Ui_Deco_LexO(object):
         text = alpha[self.dataFrame_Tab.currentIndex()-1].item(row, colum).text()
         column_temp = filtered_df_list[self.dataFrame_Tab.currentIndex()-1].columns.tolist()
         filtered_df.at[row, column_temp[colum]] = text
-        # handle_df_list[self.dataFrame_Tab.currentIndex()-1].at[original_index[row],column_temp[colum]] =text
 
         ##handle df list에 새로 엎어주기
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
-
-        for i in range(len(original_index)):
-            handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
-
+        handle_df.at[original_index[0],column_temp[colum]] =text
         handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
 
         print(handle_df, '\n', filtered_df)
