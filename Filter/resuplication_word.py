@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df1 = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
-df2 = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DecoLex_Test.csv',encoding = 'utf-8-sig')
+df1 = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
+df2 = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\example\DecoLex_Test.csv',encoding = 'utf-8-sig')
 
 def column_name(df):
     #첫 행 살리기
@@ -178,4 +178,4 @@ def Write(df1, df2, locate):
             result.insert(0, "From","Second")
             result.to_csv('reduplication_result.csv', mode = 'a',header=False, index = False, encoding ='utf-8-sig')
             
-Write(df1, df2, locate)
+print(Write(df1, df2, locate))
