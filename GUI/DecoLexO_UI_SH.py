@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import os, re
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import Qt
 from collections import OrderedDict
 
 #tab_nme list

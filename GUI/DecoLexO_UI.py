@@ -2430,6 +2430,7 @@ class Ui_Deco_LexO(object):
         #Menu part connect
         self.actionOpen_file_s.triggered.connect(self.openFiles)
         self.actionSave_file_as.triggered.connect(self.save_as)
+        self.actionSave.triggered.connect(self.Save_current_table_function)
 
         #Edit part connect
         self.Add_start.released.connect(self.add_function)
@@ -2545,7 +2546,7 @@ class Ui_Deco_LexO(object):
         self.actionOpen_file_s.setText(_translate("Deco_LexO", "Open files..."))
         self.actionOpen_file_s.setShortcut(_translate("Deco_LexO", "Ctrl+O"))
         self.actionNone.setText(_translate("Deco_LexO", "None"))
-        self.actionSave.setText(_translate("Deco_LexO", "Save file"))
+        self.actionSave.setText(_translate("Deco_LexO", "Save current file"))
         self.actionSave.setShortcut(_translate("Deco_LexO", "Ctrl+S"))
         self.actionSave_file_as.setText(_translate("Deco_LexO", "Save file as..."))
         self.actionSave_file_as.setShortcut(_translate("Deco_LexO", "Ctrl+Shift+S"))
@@ -2623,8 +2624,10 @@ class Ui_Deco_LexO(object):
             self.readFiles (handle_df)
             Tab_index += 1
             self.dataFrame_Tab.setCurrentIndex(Tab_index)
-            alpha[self.dataFrame_Tab.currentIndex()-1].cellClicked.connect(self.onClicked_table)
-            # alpha[self.dataFrame_Tab.currentIndex()-1].currentItemChanged.connect(self.entered_table)
+
+            #enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+            alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
+
         except Exception:
             pass
 
@@ -2664,44 +2667,90 @@ class Ui_Deco_LexO(object):
         if sfileform == 'dic':
             col_nme = handle_df.columns.tolist()
             result_df = result_df[col_nme]
-            return (df2dic(result_df, sfileloc))     
+            return (df2dic(result_df, sfileloc)) 
 
-    ##직접 입력해서 데이터프레임 바꾸기
-    def onClicked_table(self, row, column):
-        global cnt
-        global original_index
-        or_clicked_index = []
-        or_clicked_index.append(row)
-        print(or_clicked_index)
-        print(original_index)
+    ##현재 보이는 창을 저장하는 기능
+    def Save_current_table_function(self):
+        global filtered_df_list
+        global handle_df
 
-        text = alpha[self.dataFrame_Tab.currentIndex()-1].item(row, column).text()
-        column_temp = filtered_df_list[self.dataFrame_Tab.currentIndex()-1].columns.tolist()
-        filtered_df_list[self.dataFrame_Tab.currentIndex()-1].at[row, column_temp[column]] = text
-        print(row)
-        handle_df_list[self.dataFrame_Tab.currentIndex()-1].at[original_index[row],column_temp[column]] = text
-        # print(handle_df_list[self.dataFrame_Tab.currentIndex()-1])
-        print(filtered_df_list[self.dataFrame_Tab.currentIndex()-1])
+        current_table = filtered_df_list[self.dataFrame_Tab.currentIndex() - 1]
 
-
-    ##keypressed enter키 관련 함수인데 뭔지 잘 모르겠다.
-    # # def keyPressEvent(self, qKeyEvent):
-    #     print(qKeyEvent.key())
-    #     if qKeyEvent.key() == QtCore.Qt.Key_Enter: 
-    #         print('entered!')
-    #         self.onClicked_table()
-    
-    ##TODO: Entered를 눌렀을때 반응하는 명령어 찾기 / 안되면 os에서 enter를 눌렀을때 반응이 일어나는 함수 만들기
-    def entered_table(self, row):
-        print(int(row))
+        sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Location', '' , 'CSV File (*.csv);; DIC File (*.dic)')
         
+        sfileloc = str (sname).split ("', '")[0][2:]
+
+        sfileform = sfileloc.split('.')[-1]
+
+        if sfileform == 'csv':
+            col_nme = handle_df.columns.tolist()
+            current_table = current_table[col_nme]
+            return (current_table.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
+        if sfileform == 'dic':
+            col_nme = handle_df.columns.tolist()
+            current_table = current_table[col_nme]
+            return (df2dic(current_table, sfileloc))
+
+    #show버튼을 누르면 원본 데이터를 보여주는 함수
+    def show_all(self):
+        global filtered_df_list
+        global handle_df_list
+        global original_index
+
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        # for i in range(len(original_index)):
+        #     handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
+        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df.copy()
+
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        ##파일의 인덱스 번호 리스트에 부여
+        for i in range(len(handle_df) - 10, len(handle_df)):
+            original_index.append(i)
+        
+        self.readFiles2 (handle_df)
+
+    ##enter를 눌렀을 때 실행되는 함수
+    ##! 엔터를 두 번 눌러야지 적용되는 오류
+    def entered_table(self, row):
+        global original_index
+
+        colum = alpha[self.dataFrame_Tab.currentIndex()-1].currentColumn()
+        row = alpha[self.dataFrame_Tab.currentIndex()-1].currentRow()
+
+        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex()-1]
+
+        text = alpha[self.dataFrame_Tab.currentIndex()-1].item(row, colum).text()
+        column_temp = filtered_df_list[self.dataFrame_Tab.currentIndex()-1].columns.tolist()
+        filtered_df.at[row, column_temp[colum]] = text
+
+        ##handle df list에 새로 엎어주기
+        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
+
+        if handle_df.shape == filtered_df.shape:
+            handle_df = filtered_df.copy()
+            handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        else:
+            for i in range(len(original_index)):
+                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+
+            handle_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df
+
+        self.readFiles2 (filtered_df)
         
 
     ##TODO: 추가해야하는 목록
     ##       - Merge 기능
-    ##       - 현재 창 Save 기능
     ##       - Filter에서 Entry 삭제
+    
 
+    #########################
+    ###Filter Function 함수##
+    #########################
         
     #filter part에서 filter 버튼을 누르면 실행되는 함수
     #각각 상황에 맞게 위에 선언된 함수들을 연결해 주고
@@ -2885,24 +2934,6 @@ class Ui_Deco_LexO(object):
             filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
 
             self.readFiles2 (filtered_df)
-
-    #show버튼을 누르면 원본 데이터를 보여주는 함수
-    def show_all(self):
-        global filtered_df_list
-        global handle_df_list
-        global original_index
-
-        handle_df = handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
-
-        filtered_df_list[self.dataFrame_Tab.currentIndex() - 1] = handle_df.copy()
-
-        filtered_df = filtered_df_list[self.dataFrame_Tab.currentIndex() - 1]
-
-        ##파일의 인덱스 번호 리스트에 부여
-        for i in range(len(handle_df) - 10, len(handle_df)):
-            original_index.append(i)
-        
-        self.readFiles2 (handle_df)
 
 
     ######################
