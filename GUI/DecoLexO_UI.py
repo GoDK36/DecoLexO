@@ -9,9 +9,13 @@
 import pandas as pd
 import numpy as np
 import os, re
+import base64, hashlib
+from Crypto.Cipher import AES
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import Qt
 from collections import OrderedDict
+import DecoLexO_Resource_rc
+
 
 #tab_nme list
 #열린 탭의 이름을 저장하는 리스트
@@ -33,13 +37,15 @@ original_index = []
 def column_name(df):
     # 첫 행 살리기
     first = list (df.columns)
-    df.loc[0] = first
-    for val in first:
-        if 'Unnamed' in val:
-            x = first.index (val)
-            first[x] = np.nan
-    df.loc[0] = first
-
+    if first[0] == 0:
+        pass
+    else:
+        df.loc[0] = first
+        for val in first:
+            if 'Unnamed' in val:
+                x = first.index (val)
+                first[x] = np.nan
+        df.loc[0] = first
     df = df.fillna ('')
     sem_rgx = re.compile (r'[Q][A-Z]{3}')  # semantic tagset
     syn_rgx = re.compile (r'[Y][A-Z]{3}')  # syntactic tagset
@@ -1800,7 +1806,7 @@ def df2dic(df, filepath):
     for i in range(0, ind_l):
         #dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
         dic = "ㆍ" 
-        ind_lst = list(df.iloc[i]) 
+        ind_lst = list(df.iloc[i])
         inf_lst = rmvspc(ind_lst) #중복되는 요소인 ''을 하나로 줄이기
         inf_lst.remove('') #''는 필요 없으므로 삭제
         lem = inf_lst[0] #lemma 추출
@@ -1817,7 +1823,9 @@ def df2dic(df, filepath):
             dic = dic + plus + inf
             
         #ns 뒤에 붙은 숫자 정보를 'JN#JN숫자'형식으로 바꾸어주기
-        last = plus + "JN#JN" + cat[-2:]
+        cat_info = str(inf_lst[1][0])
+
+        last = plus + "J"+ cat_info + "#J" + str(inf_lst[1][0]) + cat[-2:]
         dic1 = dic + last
         dic_lst.append(str(dic1))
 
@@ -1836,6 +1844,16 @@ def df2dic(df, filepath):
 #############
 # GUI PART  #
 #############
+
+##New Window
+class subwindow(QtWidgets.QWidget):
+    def createWindow(self, WindowWidth, WindowHeight):
+        parent=None
+        super(subwindow,self).__init__(parent)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.resize(WindowWidth, WindowHeight)
+
+##Main Window
 
 class Ui_Deco_LexO(object):
     def setupUi(self, Deco_LexO):
@@ -1886,33 +1904,29 @@ class Ui_Deco_LexO(object):
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.dataFrame_Tab.addTab(self.tab, "")
         self.gridLayout.addWidget(self.dataFrame_Tab, 0, 1, 1, 1)
+        self.StartBg = QtWidgets.QLabel(self.tab)
+        self.StartBg.setEnabled(True)
+        self.StartBg.setMaximumSize(QtCore.QSize(300, 300))
+        self.StartBg.setText("")
+        self.StartBg.setPixmap(QtGui.QPixmap(":/Image/LexOBg.png"))
+        self.StartBg.setScaledContents(True)
+        self.StartBg.setObjectName("StartBg")
+        self.gridLayout_2.addWidget(self.StartBg, 0, 0, 1, 1)
         self.tabWidget_1 = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget_1.setMaximumSize(QtCore.QSize(328, 16777215))
+        self.tabWidget_1.setMaximumSize(QtCore.QSize(350, 16777215))
         self.tabWidget_1.setObjectName("tabWidget_1")
         self.Modifying_Tab = QtWidgets.QWidget()
         self.Modifying_Tab.setObjectName("Modifying_Tab")
 
         #Filter Entry part
-        self.FEntryCombo = QtWidgets.QComboBox(self.Modifying_Tab)
-        self.FEntryCombo.setGeometry(QtCore.QRect(30, 40, 91, 21))
-        self.FEntryCombo.setObjectName("FEntryCombo")
-        self.FEntryCombo.addItem("")
-        self.FEntryCombo.setItemText(0, "")
-        self.FEntryCombo.addItem("")
-        self.FEntryCombo.addItem("")
-        self.FEntryCombo.addItem("")
-        self.FEntryCombo.addItem("")
-        self.FEntryCombo.addItem("")
-        self.FEntry_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FEntry_Input.setGeometry(QtCore.QRect(130, 40, 161, 21))
-        self.FEntry_Input.setObjectName("FEntry_Input")
+
 
         #Filter Lemma part
         self.FLemma_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FLemma_Input.setGeometry(QtCore.QRect(130, 100, 161, 21))
+        self.FLemma_Input.setGeometry(QtCore.QRect(130, 40, 161, 21))
         self.FLemma_Input.setObjectName("FLemma_Input")
         self.FLemmaCombo = QtWidgets.QComboBox(self.Modifying_Tab)
-        self.FLemmaCombo.setGeometry(QtCore.QRect(30, 100, 91, 21))
+        self.FLemmaCombo.setGeometry(QtCore.QRect(30, 40, 91, 21))
         self.FLemmaCombo.setObjectName("FLemmaCombo")
         self.FLemmaCombo.addItem("")
         self.FLemmaCombo.setItemText(0, "")
@@ -1924,7 +1938,7 @@ class Ui_Deco_LexO(object):
 
         #Filter Category part
         self.FCateCombo = QtWidgets.QComboBox(self.Modifying_Tab)
-        self.FCateCombo.setGeometry(QtCore.QRect(30, 160, 91, 21))
+        self.FCateCombo.setGeometry(QtCore.QRect(30, 100, 91, 21))
         self.FCateCombo.setObjectName("FCateCombo")
         self.FCateCombo.addItem("")
         self.FCateCombo.setItemText(0, "")
@@ -1934,12 +1948,12 @@ class Ui_Deco_LexO(object):
         self.FCateCombo.addItem("")
         self.FCateCombo.addItem("")
         self.FCate_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FCate_Input.setGeometry(QtCore.QRect(130, 160, 161, 21))
+        self.FCate_Input.setGeometry(QtCore.QRect(130, 100, 161, 21))
         self.FCate_Input.setObjectName("FCate_Input")
 
         #Filter Infornation part
         self.FInfoCombo = QtWidgets.QComboBox(self.Modifying_Tab)
-        self.FInfoCombo.setGeometry(QtCore.QRect(30, 220, 91, 21))
+        self.FInfoCombo.setGeometry(QtCore.QRect(30, 160, 91, 21))
         self.FInfoCombo.setObjectName("FInfoCombo")
         self.FInfoCombo.addItem("")
         self.FInfoCombo.setItemText(0, "")
@@ -1949,58 +1963,74 @@ class Ui_Deco_LexO(object):
         self.FInfoCombo.addItem("")
         self.FInfoCombo.addItem("")
         self.FInfo_Input = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FInfo_Input.setGeometry(QtCore.QRect(210, 220, 81, 21))
+        self.FInfo_Input.setGeometry(QtCore.QRect(210, 160, 81, 21))
         self.FInfo_Input.setObjectName("FInfo_Input")
         self.FInfo_Colname = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FInfo_Colname.setGeometry(QtCore.QRect(130, 220, 71, 21))
+        self.FInfo_Colname.setGeometry(QtCore.QRect(130, 160, 71, 21))
         self.FInfo_Colname.setObjectName("FInfo_Colname")
+
+        ##Question Button
+        self.Question_button = QtWidgets.QPushButton(self.Modifying_Tab)
+        self.Question_button.setEnabled(False)
+        self.Question_button.setGeometry(QtCore.QRect(280, 510, 31, 41))
+        self.Question_button.setText("")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/Image/question_mark.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/Image/question_mark.png"), QtGui.QIcon.Disabled, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/Image/question_mark.png"), QtGui.QIcon.Disabled, QtGui.QIcon.On)
+        self.Question_button.setIcon(icon)
+        self.Question_button.setIconSize(QtCore.QSize(22, 22))
+        self.Question_button.setAutoDefault(False)
+        self.Question_button.setDefault(False)
+        self.Question_button.setFlat(True)
+        self.Question_button.setObjectName("Question_button")
 
         #Filter Phonological First_Syllable part
         self.FFirst_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FFirst_1.setGeometry(QtCore.QRect(30, 320, 51, 21))
+        self.FFirst_1.setGeometry(QtCore.QRect(30, 260, 51, 21))
         self.FFirst_1.setObjectName("FFirst_1")
         self.FFirst_2 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FFirst_2.setGeometry(QtCore.QRect(100, 320, 51, 21))
+        self.FFirst_2.setGeometry(QtCore.QRect(100, 260, 51, 21))
         self.FFirst_2.setObjectName("FFirst_2")
         self.FFirst_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FFirst_3.setGeometry(QtCore.QRect(170, 320, 51, 21))
+        self.FFirst_3.setGeometry(QtCore.QRect(170, 260, 51, 21))
         self.FFirst_3.setObjectName("FFirst_3")
 
         #Filter Phonological Second_Syllable part
         self.FSec_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FSec_3.setGeometry(QtCore.QRect(170, 370, 51, 21))
+        self.FSec_3.setGeometry(QtCore.QRect(170, 310, 51, 21))
         self.FSec_3.setObjectName("FSec_3")
         self.FSec_2 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FSec_2.setGeometry(QtCore.QRect(100, 370, 51, 21))
+        self.FSec_2.setGeometry(QtCore.QRect(100, 310, 51, 21))
         self.FSec_2.setObjectName("FSec_2")
         self.FSec_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FSec_1.setGeometry(QtCore.QRect(30, 370, 51, 21))
+        self.FSec_1.setGeometry(QtCore.QRect(30, 310, 51, 21))
         self.FSec_1.setObjectName("FSec_1")
 
         #Filter Phonological Second_to_Last part
         self.FSecL_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FSecL_3.setGeometry(QtCore.QRect(170, 420, 51, 21))
+        self.FSecL_3.setGeometry(QtCore.QRect(170, 360, 51, 21))
         self.FSecL_3.setObjectName("FSecL_3")
         self.FSecL_2 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FSecL_2.setGeometry(QtCore.QRect(100, 420, 51, 21))
+        self.FSecL_2.setGeometry(QtCore.QRect(100, 360, 51, 21))
         self.FSecL_2.setObjectName("FSecL_2")
         self.FSecL_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FSecL_1.setGeometry(QtCore.QRect(30, 420, 51, 21))
+        self.FSecL_1.setGeometry(QtCore.QRect(30, 360, 51, 21))
         self.FSecL_1.setObjectName("FSecL_1")
 
         #Filter Phonological Last_Syllable part
         self.FLast_3 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FLast_3.setGeometry(QtCore.QRect(170, 470, 51, 21))
+        self.FLast_3.setGeometry(QtCore.QRect(170, 410, 51, 21))
         self.FLast_3.setObjectName("FLast_3")
         self.FLast_2 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FLast_2.setGeometry(QtCore.QRect(100, 470, 51, 21))
+        self.FLast_2.setGeometry(QtCore.QRect(100, 410, 51, 21))
         self.FLast_2.setObjectName("FLast_2")
         self.FLast_1 = QtWidgets.QLineEdit(self.Modifying_Tab)
-        self.FLast_1.setGeometry(QtCore.QRect(30, 470, 51, 21))
+        self.FLast_1.setGeometry(QtCore.QRect(30, 410, 51, 21))
         self.FLast_1.setObjectName("FLast_1")
 
         self.FPhonoFrame = QtWidgets.QFrame(self.Modifying_Tab)
-        self.FPhonoFrame.setGeometry(QtCore.QRect(10, 290, 281, 251))
+        self.FPhonoFrame.setGeometry(QtCore.QRect(10, 230, 281, 251))
         self.FPhonoFrame.setFrameShape(QtWidgets.QFrame.Box)
         self.FPhonoFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.FPhonoFrame.setObjectName("FPhonoFrame")
@@ -2032,33 +2062,30 @@ class Ui_Deco_LexO(object):
 
         #Filter button
         self.FFiltering_Button = QtWidgets.QPushButton(self.Modifying_Tab)
-        self.FFiltering_Button.setGeometry(QtCore.QRect(20, 550, 75, 23))
+        self.FFiltering_Button.setGeometry(QtCore.QRect(20, 520, 75, 23))
         self.FFiltering_Button.setObjectName("FFiltering_Button")
 
         #Show all button
         self.FShow_Button = QtWidgets.QPushButton(self.Modifying_Tab)
-        self.FShow_Button.setGeometry(QtCore.QRect(110, 550, 75, 23))
+        self.FShow_Button.setGeometry(QtCore.QRect(110, 520, 75, 23))
         self.FShow_Button.setObjectName("FShow_Button")
 
         #clear button
         self.FClear_Button = QtWidgets.QPushButton(self.Modifying_Tab)
-        self.FClear_Button.setGeometry(QtCore.QRect(210, 550, 75, 23))
+        self.FClear_Button.setGeometry(QtCore.QRect(200, 520, 75, 23))
         self.FClear_Button.setObjectName("FClear_Button")
 
-        self.label = QtWidgets.QLabel(self.Modifying_Tab)
-        self.label.setGeometry(QtCore.QRect(30, 10, 56, 21))
-        self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(self.Modifying_Tab)
-        self.label_2.setGeometry(QtCore.QRect(30, 70, 56, 21))
+        self.label_2.setGeometry(QtCore.QRect(30, 10, 56, 21))
         self.label_2.setObjectName("label_2")
         self.label_3 = QtWidgets.QLabel(self.Modifying_Tab)
-        self.label_3.setGeometry(QtCore.QRect(30, 130, 56, 21))
+        self.label_3.setGeometry(QtCore.QRect(30, 70, 100, 21))
         self.label_3.setObjectName("label_3")
         self.label_4 = QtWidgets.QLabel(self.Modifying_Tab)
-        self.label_4.setGeometry(QtCore.QRect(30, 190, 81, 21))
+        self.label_4.setGeometry(QtCore.QRect(30, 130, 81, 21))
         self.label_4.setObjectName("label_4")
         self.label_5 = QtWidgets.QLabel(self.Modifying_Tab)
-        self.label_5.setGeometry(QtCore.QRect(10, 270, 141, 31))
+        self.label_5.setGeometry(QtCore.QRect(10, 205, 181, 31))
         font = QtGui.QFont()
         font.setBold(True)
         font.setWeight(75)
@@ -2067,8 +2094,6 @@ class Ui_Deco_LexO(object):
 
         #Filter Phonological button part
         self.FPhonoFrame.raise_()
-        self.FEntryCombo.raise_()
-        self.FEntry_Input.raise_()
         self.FLemma_Input.raise_()
         self.FLemmaCombo.raise_()
         self.FCateCombo.raise_()
@@ -2088,7 +2113,6 @@ class Ui_Deco_LexO(object):
         self.FFiltering_Button.raise_()
         self.FShow_Button.raise_()
         self.FClear_Button.raise_()
-        self.label.raise_()
         self.label_2.raise_()
         self.label_3.raise_()
         self.FInfo_Input.raise_()
@@ -2096,6 +2120,7 @@ class Ui_Deco_LexO(object):
         self.FInfoCombo.raise_()
         self.label_5.raise_()
         self.FInfo_Colname.raise_()
+        self.Question_button.raise_()
 
         #Edit GUI
         self.tabWidget_1.addTab(self.Modifying_Tab, "")
@@ -2379,6 +2404,18 @@ class Ui_Deco_LexO(object):
         self.gridLayout.addWidget(self.tabWidget_1, 0, 0, 1, 1)
         Deco_LexO.setCentralWidget(self.centralwidget)
 
+        ##Question button2
+        self.Question_button_2 = QtWidgets.QPushButton(self.Edit_tab)
+        self.Question_button_2.setEnabled(False)
+        self.Question_button_2.setGeometry(QtCore.QRect(305, 42, 31, 41))
+        self.Question_button_2.setText("")
+        self.Question_button_2.setIcon(icon)
+        self.Question_button_2.setIconSize(QtCore.QSize(20, 20))
+        self.Question_button_2.setAutoDefault(False)
+        self.Question_button_2.setDefault(False)
+        self.Question_button_2.setFlat(True)
+        self.Question_button_2.setObjectName("Question_button_2")
+
         #Menu Section
         self.menubar = QtWidgets.QMenuBar(Deco_LexO)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 709, 21))
@@ -2393,8 +2430,9 @@ class Ui_Deco_LexO(object):
         self.actionOpen_file_s = QtWidgets.QAction(Deco_LexO)
         self.actionOpen_file_s.setShortcutContext(QtCore.Qt.WindowShortcut)
         self.actionOpen_file_s.setObjectName("actionOpen_file_s")
-        self.actionNone = QtWidgets.QAction(Deco_LexO)
-        self.actionNone.setObjectName("actionNone")
+        self.actionOpen_Encrypt_file = QtWidgets.QAction(Deco_LexO)
+        self.actionOpen_Encrypt_file.setShortcutContext(QtCore.Qt.WindowShortcut)
+        self.actionOpen_Encrypt_file.setObjectName("actionOpen_Encrypt_file")
         self.actionSave = QtWidgets.QAction(Deco_LexO)
         self.actionSave.setObjectName("actionSave")
         self.actionSave_file_as = QtWidgets.QAction(Deco_LexO)
@@ -2405,9 +2443,8 @@ class Ui_Deco_LexO(object):
         self.actionAcknowledgement.setObjectName("actionAcknowledgement")
         self.actionAbout_DecoLexO = QtWidgets.QAction(Deco_LexO)
         self.actionAbout_DecoLexO.setObjectName("actionAbout_DecoLexO")
-        self.menuRecent_files.addAction(self.actionNone)
         self.menuFile.addAction(self.actionOpen_file_s)
-        self.menuFile.addAction(self.menuRecent_files.menuAction())
+        self.menuFile.addAction(self.actionOpen_Encrypt_file)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionSave)
         self.menuFile.addAction(self.actionSave_file_as)
@@ -2425,12 +2462,63 @@ class Ui_Deco_LexO(object):
         self.Edit_function_tab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Deco_LexO)
 
+        ##Tab Order
+        Deco_LexO.setTabOrder(self.tabWidget_1, self.FLemmaCombo)
+        Deco_LexO.setTabOrder(self.FLemmaCombo, self.FLemma_Input)
+        Deco_LexO.setTabOrder(self.FLemma_Input, self.FCateCombo)
+        Deco_LexO.setTabOrder(self.FCateCombo, self.FCate_Input)
+        Deco_LexO.setTabOrder(self.FCate_Input, self.FInfoCombo)
+        Deco_LexO.setTabOrder(self.FInfoCombo, self.FInfo_Colname)
+        Deco_LexO.setTabOrder(self.FInfo_Colname, self.FInfo_Input)
+        Deco_LexO.setTabOrder(self.FInfo_Input, self.FFirst_1)
+        Deco_LexO.setTabOrder(self.FFirst_1, self.FFirst_2)
+        Deco_LexO.setTabOrder(self.FFirst_2, self.FFirst_3)
+        Deco_LexO.setTabOrder(self.FFirst_3, self.FSec_1)
+        Deco_LexO.setTabOrder(self.FSec_1, self.FSec_2)
+        Deco_LexO.setTabOrder(self.FSec_2, self.FSec_3)
+        Deco_LexO.setTabOrder(self.FSec_3, self.FSecL_1)
+        Deco_LexO.setTabOrder(self.FSecL_1, self.FSecL_2)
+        Deco_LexO.setTabOrder(self.FSecL_2, self.FSecL_3)
+        Deco_LexO.setTabOrder(self.FSecL_3, self.FLast_1)
+        Deco_LexO.setTabOrder(self.FLast_1, self.FLast_2)
+        Deco_LexO.setTabOrder(self.FLast_2, self.FLast_3)
+        Deco_LexO.setTabOrder(self.FLast_3, self.FColCombo)
+        Deco_LexO.setTabOrder(self.FColCombo, self.FFiltering_Button)
+        Deco_LexO.setTabOrder(self.FFiltering_Button, self.FShow_Button)
+        Deco_LexO.setTabOrder(self.FShow_Button, self.FClear_Button)
+        Deco_LexO.setTabOrder(self.FClear_Button, self.Question_button)
+        Deco_LexO.setTabOrder(self.Question_button, self.Edit_function_tab)
+        Deco_LexO.setTabOrder(self.Edit_function_tab, self.Add_column)
+        Deco_LexO.setTabOrder(self.Add_column, self.Add_position)
+        Deco_LexO.setTabOrder(self.Add_position, self.Add_oldText)
+        Deco_LexO.setTabOrder(self.Add_oldText, self.Add_start)
+        Deco_LexO.setTabOrder(self.Add_start, self.Remove_column)
+        Deco_LexO.setTabOrder(self.Remove_column, self.Remove_position)
+        Deco_LexO.setTabOrder(self.Remove_position, self.Remove_oldText)
+        Deco_LexO.setTabOrder(self.Remove_oldText, self.Remove_start)
+        Deco_LexO.setTabOrder(self.Remove_start, self.Replace_column)
+        Deco_LexO.setTabOrder(self.Replace_column, self.Replace_position)
+        Deco_LexO.setTabOrder(self.Replace_position, self.Replace_oldtext)
+        Deco_LexO.setTabOrder(self.Replace_oldtext, self.Replace_newtext)
+        Deco_LexO.setTabOrder(self.Replace_newtext, self.Replace_start)
+        Deco_LexO.setTabOrder(self.Replace_start, self.Irreg_cons)
+        Deco_LexO.setTabOrder(self.Irreg_cons, self.Irreg_oldinflec)
+        Deco_LexO.setTabOrder(self.Irreg_oldinflec, self.irreg_newinflec)
+        Deco_LexO.setTabOrder(self.irreg_newinflec, self.Irreg_start)
+        Deco_LexO.setTabOrder(self.Irreg_start, self.Push_addrow)
+        Deco_LexO.setTabOrder(self.Push_addrow, self.Push_Deleterow)
+        Deco_LexO.setTabOrder(self.Push_Deleterow, self.Push_Duplicaterow)
+        Deco_LexO.setTabOrder(self.Push_Duplicaterow, self.Question_button_2)
+        Deco_LexO.setTabOrder(self.Question_button_2, self.dataFrame_Tab)
+
         ##connenct code##
 
         #Menu part connect
         self.actionOpen_file_s.triggered.connect(self.openFiles)
         self.actionSave_file_as.triggered.connect(self.save_as)
         self.actionSave.triggered.connect(self.Save_current_table_function)
+        self.actionQuit.triggered.connect(QtCore.QCoreApplication.instance().quit)
+        self.actionOpen_Encrypt_file.triggered.connect(self.Dec_module)
 
         #Edit part connect
         self.Add_start.released.connect(self.add_function)
@@ -2457,11 +2545,6 @@ class Ui_Deco_LexO(object):
         self.dataFrame_Tab.setTabText(self.dataFrame_Tab.indexOf(self.tab), _translate("Deco_LexO", "Start"))
 
         #Filter part GUI
-        self.FEntryCombo.setItemText(1, _translate("Deco_LexO", "Equals"))
-        self.FEntryCombo.setItemText(2, _translate("Deco_LexO", "Starts with"))
-        self.FEntryCombo.setItemText(3, _translate("Deco_LexO", "Ends with"))
-        self.FEntryCombo.setItemText(4, _translate("Deco_LexO", "Contains"))
-        self.FEntryCombo.setItemText(5, _translate("Deco_LexO", "is empty"))
         self.FLemmaCombo.setItemText(1, _translate("Deco_LexO", "Equals"))
         self.FLemmaCombo.setItemText(2, _translate("Deco_LexO", "Starts with"))
         self.FLemmaCombo.setItemText(3, _translate("Deco_LexO", "Ends with"))
@@ -2480,7 +2563,6 @@ class Ui_Deco_LexO(object):
         self.FFiltering_Button.setText(_translate("Deco_LexO", "Filter"))
         self.FShow_Button.setText(_translate("Deco_LexO", "Show all"))
         self.FClear_Button.setText(_translate("Deco_LexO", "Clear"))
-        self.label.setText(_translate("Deco_LexO", "Entry:"))
         self.label_2.setText(_translate("Deco_LexO", "Lemma:"))
         self.label_3.setText(_translate("Deco_LexO", "Category:"))
         self.label_4.setText(_translate("Deco_LexO", "Information:"))
@@ -2492,6 +2574,8 @@ class Ui_Deco_LexO(object):
         self.FColCombo.setItemText(1, _translate("Deco_LexO", "Lemma"))
         self.FColCombo.setItemText(2, _translate("Deco_LexO", "Entry"))
         self.label_5.setText(_translate("Deco_LexO", "Phonological shape"))
+        self.Question_button.setToolTip(_translate("Deco_LexO", "<html><head/><body><p>If you want to change items directly in the table, press enter twice to apply.</p></body></html>"))
+        self.Question_button_2.setToolTip(_translate("Deco_LexO", "<html><head/><body><p>If you want to change items directly in the table, press enter twice to apply.</p></body></html>"))
         self.tabWidget_1.setTabText(self.tabWidget_1.indexOf(self.Modifying_Tab), _translate("Deco_LexO", "Filter"))
 
         #Edit part GUI
@@ -2543,10 +2627,11 @@ class Ui_Deco_LexO(object):
         self.menuFile.setTitle(_translate("Deco_LexO", "File"))
         self.menuRecent_files.setTitle(_translate("Deco_LexO", "Recent files"))
         self.menuHelp.setTitle(_translate("Deco_LexO", "Help"))
-        self.actionOpen_file_s.setText(_translate("Deco_LexO", "Open files..."))
+        self.actionOpen_file_s.setText(_translate("Deco_LexO", "Open file (.dic/csv)"))
         self.actionOpen_file_s.setShortcut(_translate("Deco_LexO", "Ctrl+O"))
-        self.actionNone.setText(_translate("Deco_LexO", "None"))
-        self.actionSave.setText(_translate("Deco_LexO", "Save current file"))
+        self.actionOpen_Encrypt_file.setText(_translate("Deco_LexO", "Open Encrypt file (.enc)"))
+        self.actionOpen_Encrypt_file.setShortcut(_translate("Deco_LexO", "Ctrl+E"))
+        self.actionSave.setText(_translate("Deco_LexO", "Save current data"))
         self.actionSave.setShortcut(_translate("Deco_LexO", "Ctrl+S"))
         self.actionSave_file_as.setText(_translate("Deco_LexO", "Save file as..."))
         self.actionSave_file_as.setShortcut(_translate("Deco_LexO", "Ctrl+Shift+S"))
@@ -2595,10 +2680,8 @@ class Ui_Deco_LexO(object):
     def openFiles(self):
         global handle_df, filtered_df, Tab_index
         global count
-        global cnt
         global filtered_df_list
 
-        cnt = 0
         try:
             fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '' , "CSV Files(*.csv)")
             self.new_tab = QtWidgets.QWidget ()
@@ -2631,11 +2714,20 @@ class Ui_Deco_LexO(object):
         except Exception:
             pass
 
-    ##filter 입력칸에 있는 인풋들을 한번에 지워주는 기능
+    ##암호화 파일 여는 함수
+    def open_enc_files(self):
+        global enc_fname
 
+        try:
+            enc_fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open ENC file', '' , "ENC Files(*.enc)")
+            return self.Dec_module
+
+        except Exception:
+            pass
+
+
+    ##filter 입력칸에 있는 인풋들을 한번에 지워주는 기능
     def clear(self):
-        self.FEntry_Input.setText('')
-        self.FEntryCombo.setCurrentIndex(0)
         self.FLemma_Input.setText('')
         self.FLemmaCombo.setCurrentIndex(0)
         self.FCate_Input.setText('')
@@ -2652,6 +2744,7 @@ class Ui_Deco_LexO(object):
     ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
     def save_as(self):
         global handle_df
+        
 
         result_df =  handle_df_list[self.dataFrame_Tab.currentIndex() - 1]
         sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Location', '' , 'CSV File (*.csv);; DIC File (*.dic)')
@@ -2659,6 +2752,8 @@ class Ui_Deco_LexO(object):
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split('.')[-1]
+
+        result_df = result_df.dropna(axis=0)
 
         if sfileform == 'csv':
             col_nme = handle_df.columns.tolist()
@@ -2681,6 +2776,8 @@ class Ui_Deco_LexO(object):
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split('.')[-1]
+
+        current_table = current_table.dropna(axis=0)
 
         if sfileform == 'csv':
             col_nme = handle_df.columns.tolist()
@@ -2745,7 +2842,7 @@ class Ui_Deco_LexO(object):
 
     ##TODO: 추가해야하는 목록
     ##       - Merge 기능
-    ##       - Filter에서 Entry 삭제
+    ##       - 암호화 파일 불러오기
     
 
     #########################
@@ -2796,33 +2893,6 @@ class Ui_Deco_LexO(object):
 
             self.readFiles2 (filtered_df)
         
-        #Entry에 찾고자 하는 정보가 들어왔을 때 실행 되는 코드
-        if self.FEntry_Input.text () != '':
-            statelis = [0]
-            FComboDict = {'Equals': 1, 'Starts with': 2, 'Ends with': 3, 'Contains': 4, 'is empty': 5}
-            statelis.insert (0, FComboDict[self.FEntryCombo.currentText ()])
-            
-            if statelis[0] == 1:
-                filtered_df = Equals (filtered_df, 'Entry', self.FEntry_Input.text (),original_index)
-
-            if statelis[0] == 2:
-                filtered_df = Starts_With (filtered_df, 'Entry', self.FEntry_Input.text (),original_index)
-
-            if statelis[0] == 3:
-                filtered_df = Ends_With (filtered_df, 'Entry', self.FEntry_Input.text(),original_index)
-
-            if statelis[0] == 4:
-                filtered_df = Contains (filtered_df, 'Entry', self.FEntry_Input.text(),original_index)
-
-            if statelis[0] == 5:
-                filtered_df = Is_Empty (filtered_df, 'Entry', self.FEntry_Input.text(),original_index)
-
-            ##filtered list에 새로 엎어주기
-            filtered_df_list[self.dataFrame_Tab.currentIndex()-1] = filtered_df
-
-            self.readFiles2 (filtered_df)
-        
-
         #Category에 원하는 정보가 들어왔을 때 실행되는 코드
         if self.FCate_Input.text () != '':
             statelis = [0]
@@ -3139,14 +3209,159 @@ class Ui_Deco_LexO(object):
 
         self.readFiles2(filtered_df)
 
+    def Dec_module(self):
+        global enc_loc
 
-class Deco_LexO(QtWidgets.QMainWindow, Ui_Deco_LexO):
-    def __init__(self, parent=None):
-        QtWidgets.QMainWindow.__init__(self, parent=parent)
-        self.setupUi(self)
+        enc_fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open ENC file', '' , "ENC Files(*.enc)")
+        enc_loc = str (enc_fname).split ("', '")[0][2:]
+        self.Dec_window = subwindow()
+        self.Dec_window.createWindow(570, 300)
+        self.frame = QtWidgets.QFrame(self.Dec_window)
+        self.frame.setGeometry(QtCore.QRect(20, 60, 531, 181))
+        self.frame.setFrameShape(QtWidgets.QFrame.Box)
+        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame.setObjectName("frame")
+        self.label_2 = QtWidgets.QLabel(self.frame)
+        self.label_2.setGeometry(QtCore.QRect(10, 20, 101, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_2.setFont(font)
+        self.label_2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_2.setObjectName("label_2")
+        self.Dec_iv = QtWidgets.QLineEdit(self.frame)
+        self.Dec_iv.setGeometry(QtCore.QRect(120, 20, 381, 21))
+        self.Dec_iv.setObjectName("Dec_iv")
+        self.label_3 = QtWidgets.QLabel(self.frame)
+        self.label_3.setGeometry(QtCore.QRect(10, 50, 101, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_3.setFont(font)
+        self.label_3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_3.setObjectName("label_3")
+        self.label_4 = QtWidgets.QLabel(self.frame)
+        self.label_4.setGeometry(QtCore.QRect(10, 80, 101, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_4.setFont(font)
+        self.label_4.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_4.setObjectName("label_4")
+        self.label_5 = QtWidgets.QLabel(self.frame)
+        self.label_5.setGeometry(QtCore.QRect(10, 110, 101, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_5.setFont(font)
+        self.label_5.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_5.setObjectName("label_5")
+        self.label_6 = QtWidgets.QLabel(self.frame)
+        self.label_6.setGeometry(QtCore.QRect(10, 140, 101, 20))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_6.setFont(font)
+        self.label_6.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.label_6.setObjectName("label_6")
+        self.Dec_Hn = QtWidgets.QLineEdit(self.frame)
+        self.Dec_Hn.setGeometry(QtCore.QRect(120, 50, 381, 21))
+        self.Dec_Hn.setAlignment(QtCore.Qt.AlignCenter)
+        self.Dec_Hn.setObjectName("Dec_Hn")
+        self.Dec_Pw = QtWidgets.QLineEdit(self.frame)
+        self.Dec_Pw.setGeometry(QtCore.QRect(120, 80, 381, 21))
+        self.Dec_Pw.setAlignment(QtCore.Qt.AlignCenter)
+        self.Dec_Pw.setObjectName("Dec_Pw")
+        self.Dec_salt = QtWidgets.QLineEdit(self.frame)
+        self.Dec_salt.setGeometry(QtCore.QRect(120, 110, 381, 21))
+        self.Dec_salt.setAlignment(QtCore.Qt.AlignCenter)
+        self.Dec_salt.setObjectName("Dec_salt")
+        self.Dec_iter = QtWidgets.QSpinBox(self.frame)
+        self.Dec_iter.setGeometry(QtCore.QRect(121, 140, 151, 22))
+        self.Dec_iter.setAlignment(QtCore.Qt.AlignCenter)
+        self.Dec_iter.setMaximum(999999999)
+        self.Dec_iter.setObjectName("Dec_iter")
+        self.label = QtWidgets.QLabel(self.Dec_window)
+        self.label.setGeometry(QtCore.QRect(20, 10, 611, 41))
+        font = QtGui.QFont()
+        font.setFamily("Arial")
+        font.setPointSize(14)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.DecryStart = QtWidgets.QPushButton(self.Dec_window)
+        self.DecryStart.setGeometry(QtCore.QRect(220, 252, 131, 31))
+        self.DecryStart.setObjectName("DecryStart")
+        QtCore.QMetaObject.connectSlotsByName(self.Dec_window)
+        _translate = QtCore.QCoreApplication.translate
+        self.Dec_window.setWindowTitle(_translate("Form", "Form"))
+        self.Dec_iv.setText('황창회는 바보')
+        self.Dec_Hn.setText('sha256')
+        self.Dec_Pw.setText('WJs<&H4yjzsAa[Na')
+        self.Dec_salt.setText('DICORA-HUFS-2019')
+        self.Dec_iter.setValue(10000000)
+        self.label_2.setText(_translate("Form", "Initial Vector:"))
+        self.label_3.setText(_translate("Form", "Hash name:"))
+        self.label_4.setText(_translate("Form", "Password:"))
+        self.label_5.setText(_translate("Form", "Salt:"))
+        self.label_6.setText(_translate("Form", "Iteration Num:"))
+        self.label.setText(_translate("Form", "Decrypt Options"))
+        self.DecryStart.setText(_translate("Form", "Decrypt"))
 
-    def keyPressEvent(self, e):
-        print(event.key())
+        self.DecryStart.released.connect(self.Decrypt_func)
+        self.Dec_window.show()
+
+    def Decrypt_func(self):
+        global handle_df, filtered_df, Tab_index
+        global count
+        global filtered_df_list
+
+        ##앞의 암호화와 반대방향으로 진행, 최종적으론 DataFrame화
+
+        enc_file = open(enc_loc, 'rb').read()
+
+        iv = self.Dec_iv.text().encode('utf-16')
+
+        def AESCipher_decrypt(key,enc):
+            BS = 16
+            pad = lambda s: s + (BS - len (s.encode ('utf-8')) % BS) * chr (BS - len (s.encode ('utf-8')) % BS)
+            unpad = lambda s: s[:-ord (s[len (s) - 1:])]
+            enc = base64.b64decode(enc)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            return unpad(cipher.decrypt(enc))
+
+        #암호화 단계에서 입력한 해시 정보들을 그대로 반영해야만 암호화 해제가 가능
+        key = hashlib.pbkdf2_hmac(hash_name=self.Dec_Hn.text(), password=self.Dec_Pw.text().encode('utf-8'), salt=self.Dec_salt.text().encode('utf-8'), iterations=self.Dec_iter.value())
+        decrypted_data = AESCipher_decrypt(bytes(key), enc_file)
+        temp_data = decrypted_data.decode('utf-8')
+        temp = []
+        for i in temp_data.split('\r\n'):
+            temp.append(i.split(','))
+        df = pd.DataFrame(temp, columns = None)
+        df = df.dropna(axis=0)
+        
+        self.new_tab = QtWidgets.QWidget ()
+        self.new_tab.setObjectName ("new_tab")
+        self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+        self.gridLayout_2.setObjectName ("gridLayout_2")
+        alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+        alpha[count].setColumnCount (0)
+        alpha[count].setRowCount (0)
+        self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+        self.dataFrame_Tab.addTab (self.new_tab, enc_loc.split ("', '")[0][2:].split('/')[-1])
+        tab_name_list.append(str(enc_file).split ("', '")[0][2:].split('/')[-1])
+        handle_df = column_name (df)
+        handle_df_list.append(handle_df)
+        filtered_df = handle_df.copy ()
+        filtered_df_list.append(filtered_df)
+        alpha[count].setColumnCount (len (handle_df.columns))
+        header = handle_df.columns
+        alpha[count].setHorizontalHeaderLabels (header)
+        alpha[count].setRowCount (len (handle_df.index))
+        self.readFiles (handle_df)
+        Tab_index += 1
+        self.dataFrame_Tab.setCurrentIndex(Tab_index)
+        self.Dec_window.close()
+
+        #enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+        alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
+
 
 if __name__ == "__main__":
     import sys
