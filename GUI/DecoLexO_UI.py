@@ -2693,7 +2693,7 @@ class Ui_Deco_LexO(object):
             self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split('/')[-1])
             tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
             Ofileloc = str (fname).split ("', '")[0][2:]
-            original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
+            original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
             handle_df = column_name (original_read)
             handle_df_list.append(handle_df)
             filtered_df = handle_df.copy ()
