@@ -1761,7 +1761,7 @@ def irreg(df, jongsung, old_eomi, new_eomi):
 
 def addrow(df):
     df.loc[len(df)] = np.nan
-    df = df.fillna('')
+    df = df.fillna(' ')
     return df
 
 ##행 삭제
@@ -1774,9 +1774,7 @@ def delrow(df):
 ##행 복제
 
 def duprow(df, sel):
-    # sel = input('복제를 원하는 행 번호: ')
     res_df = df.append(df.iloc[int(sel)], ignore_index = True)
-    ##특정 행을 클릭하는것을 어떻게 나타내는지??
     return(res_df)
 
 ##dic파일로 저장하는 함수
@@ -2753,16 +2751,31 @@ class Ui_Deco_LexO(object):
 
         sfileform = sfileloc.split('.')[-1]
 
-        result_df = result_df.dropna(axis=0)
 
-        if sfileform == 'csv':
-            col_nme = handle_df.columns.tolist()
-            result_df = result_df[col_nme]
-            return (result_df.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
-        if sfileform == 'dic':
-            col_nme = handle_df.columns.tolist()
-            result_df = result_df[col_nme]
-            return (df2dic(result_df, sfileloc)) 
+        try:
+            ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
+            result_df = result_df.dropna(axis=0)
+
+            ##Lemma와 Category에 빈 칸 있을 시 제거
+            lem_idx = result_df[result_df['Lemma'] == ' '].index
+            cat_idx = result_df[result_df['Category'] == ' '].index
+            result_df = result_df.drop(lem_idx)
+            result_df = result_df.drop(cat_idx)
+
+
+            if sfileform == 'csv':
+                col_nme = handle_df.columns.tolist()
+                result_df = result_df[col_nme]
+                os.startfile (sfileloc)
+                return (result_df.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
+            if sfileform == 'dic':
+                col_nme = handle_df.columns.tolist()
+                result_df = result_df[col_nme]
+                os.startfile (sfileloc)
+                return (df2dic(result_df, sfileloc)) 
+        
+        except Exception:
+            pass
 
     ##현재 보이는 창을 저장하는 기능
     def Save_current_table_function(self):
@@ -2777,16 +2790,28 @@ class Ui_Deco_LexO(object):
 
         sfileform = sfileloc.split('.')[-1]
 
-        current_table = current_table.dropna(axis=0)
+        try:
+            ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
+            current_table = current_table.dropna(axis=0)
 
-        if sfileform == 'csv':
-            col_nme = handle_df.columns.tolist()
-            current_table = current_table[col_nme]
-            return (current_table.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
-        if sfileform == 'dic':
-            col_nme = handle_df.columns.tolist()
-            current_table = current_table[col_nme]
-            return (df2dic(current_table, sfileloc))
+            ##Lemma와 Category에 빈 칸 있을 시 제거
+            lem_idx = current_table[current_table['Lemma'] == ' '].index
+            cat_idx = current_table[current_table['Category'] == ' '].index
+            current_table = current_table.drop(lem_idx)
+            current_table = current_table.drop(cat_idx)
+
+            if sfileform == 'csv':
+                col_nme = handle_df.columns.tolist()
+                current_table = current_table[col_nme]
+                return (current_table.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
+            if sfileform == 'dic':
+                col_nme = handle_df.columns.tolist()
+                current_table = current_table[col_nme]
+                os.startfile (sfileloc)
+                return (df2dic(current_table, sfileloc))
+        except Exception:
+            pass
+
 
     #show버튼을 누르면 원본 데이터를 보여주는 함수
     def show_all(self):
