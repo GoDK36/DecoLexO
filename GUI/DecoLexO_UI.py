@@ -2682,32 +2682,37 @@ class Ui_Deco_LexO(object):
 
         try:
             fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '' , "CSV Files(*.csv)")
-            self.new_tab = QtWidgets.QWidget ()
-            self.new_tab.setObjectName ("new_tab")
-            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
-            self.gridLayout_2.setObjectName ("gridLayout_2")
-            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
-            alpha[count].setColumnCount (0)
-            alpha[count].setRowCount (0)
-            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
-            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split('/')[-1])
-            tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
-            Ofileloc = str (fname).split ("', '")[0][2:]
-            original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
-            handle_df = column_name (original_read)
-            handle_df_list.append(handle_df)
-            filtered_df = handle_df.copy ()
-            filtered_df_list.append(filtered_df)
-            alpha[count].setColumnCount (len (handle_df.columns))
-            header = handle_df.columns
-            alpha[count].setHorizontalHeaderLabels (header)
-            alpha[count].setRowCount (len (handle_df.index))
-            self.readFiles (handle_df)
-            Tab_index += 1
-            self.dataFrame_Tab.setCurrentIndex(Tab_index)
 
-            #enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
-            alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
+            ##아무 선택도 안하고 취소할때는 넘어가기
+            if fname == ('', ''):
+                pass
+            else:
+                self.new_tab = QtWidgets.QWidget ()
+                self.new_tab.setObjectName ("new_tab")
+                self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+                self.gridLayout_2.setObjectName ("gridLayout_2")
+                alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+                alpha[count].setColumnCount (0)
+                alpha[count].setRowCount (0)
+                self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+                self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split('/')[-1])
+                tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
+                Ofileloc = str (fname).split ("', '")[0][2:]
+                original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
+                handle_df = column_name (original_read)
+                handle_df_list.append(handle_df)
+                filtered_df = handle_df.copy ()
+                filtered_df_list.append(filtered_df)
+                alpha[count].setColumnCount (len (handle_df.columns))
+                header = handle_df.columns
+                alpha[count].setHorizontalHeaderLabels (header)
+                alpha[count].setRowCount (len (handle_df.index))
+                self.readFiles (handle_df)
+                Tab_index += 1
+                self.dataFrame_Tab.setCurrentIndex(Tab_index)
+
+                #enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+                alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
 
         except Exception:
             pass
@@ -2718,7 +2723,12 @@ class Ui_Deco_LexO(object):
 
         try:
             enc_fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open ENC file', '' , "ENC Files(*.enc)")
-            return self.Dec_module
+            
+            ##아무 선택도 안하고 취소할때는 넘어가기
+            if enc_fname == ('', ''):
+                pass
+            else:
+                return self.Dec_module
 
         except Exception:
             pass
@@ -2739,6 +2749,7 @@ class Ui_Deco_LexO(object):
         self.FSecL_1.setText(''), self.FSecL_2.setText(''), self.FSecL_3.setText('')
         self.FLast_1.setText(''), self.FLast_2.setText(''), self.FLast_3.setText('')
 
+
     ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
     def save_as(self):
         global handle_df
@@ -2750,7 +2761,6 @@ class Ui_Deco_LexO(object):
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split('.')[-1]
-
 
         try:
             ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
@@ -2766,16 +2776,14 @@ class Ui_Deco_LexO(object):
             if sfileform == 'csv':
                 col_nme = handle_df.columns.tolist()
                 result_df = result_df[col_nme]
-                os.startfile (sfileloc)
                 return (result_df.to_csv(sfileloc, header=True, index=False, na_rep='', encoding='utf-8-sig'))
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist()
                 result_df = result_df[col_nme]
-                os.startfile (sfileloc)
-                return (df2dic(result_df, sfileloc)) 
-        
+                return (df2dic(result_df, sfileloc))
         except Exception:
             pass
+
 
     ##현재 보이는 창을 저장하는 기능
     def Save_current_table_function(self):
@@ -2807,7 +2815,6 @@ class Ui_Deco_LexO(object):
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist()
                 current_table = current_table[col_nme]
-                os.startfile (sfileloc)
                 return (df2dic(current_table, sfileloc))
         except Exception:
             pass
@@ -2836,7 +2843,6 @@ class Ui_Deco_LexO(object):
         self.readFiles2 (handle_df)
 
     ##enter를 눌렀을 때 실행되는 함수
-    ##! 엔터를 두 번 눌러야지 적용되는 오류
     def entered_table(self, row):
         global original_index
 
@@ -2867,7 +2873,6 @@ class Ui_Deco_LexO(object):
 
     ##TODO: 추가해야하는 목록
     ##       - Merge 기능
-    ##       - 암호화 파일 불러오기
     
 
     #########################
