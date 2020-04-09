@@ -33,13 +33,15 @@ original_index = []
 def column_name(df):
     # 첫 행 살리기
     first = list (df.columns)
-    df.loc[0] = first
-    for val in first:
-        if 'Unnamed' in val:
-            x = first.index (val)
-            first[x] = np.nan
-    df.loc[0] = first
-
+    if first[0] == 0:
+        pass
+    else:
+        df.loc[0] = first
+        for val in first:
+            if 'Unnamed' in val:
+                x = first.index (val)
+                first[x] = np.nan
+        df.loc[0] = first
     df = df.fillna ('')
     sem_rgx = re.compile (r'[Q][A-Z]{3}')  # semantic tagset
     syn_rgx = re.compile (r'[Y][A-Z]{3}')  # syntactic tagset
@@ -366,6 +368,7 @@ CHOSUNG_LIST = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', '
 JUNGSUNG_LIST = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
 # 종성 리스트. 00 ~ 27 + 1(1개 없음)
 JONGSUNG_LIST = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+
 
 def Divide(korean_word):
     r_lst = []
@@ -2612,7 +2615,7 @@ class Ui_Deco_LexO(object):
             self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split('/')[-1])
             tab_name_list.append(str (fname).split ("', '")[0][2:].split('/')[-1])
             Ofileloc = str (fname).split ("', '")[0][2:]
-            original_read = pd.read_csv (Ofileloc, encoding='utf-8-sig')
+            original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
             handle_df = column_name (original_read)
             handle_df_list.append(handle_df)
             filtered_df = handle_df.copy ()
@@ -2627,7 +2630,7 @@ class Ui_Deco_LexO(object):
 
             #enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
             alpha[self.dataFrame_Tab.currentIndex()-1].activated.connect(self.entered_table)
-
+            self.merge()
         except Exception:
             pass
 
@@ -3139,40 +3142,125 @@ class Ui_Deco_LexO(object):
 
         self.readFiles2(filtered_df)
     
+    def check_info(self, word):
+        sem_rgx = re.compile (r'[Q][A-Z]{3}')  # semantic tagset
+        syn_rgx = re.compile (r'[Y][A-Z]{3}')  # syntactic tagset
+        dom_rgx = re.compile (r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')  # domain tagset
+        ent_rgx = re.compile (r'[X]{2}[A-Z]{2}')  # entity tagset
+        mor_rgx = re.compile (r'[A-Z]{3}')  # morph tagset
+
+        if sem_rgx.match (word):
+            return 'SenInfo'
+        elif syn_rgx.match (word):
+            return 'SynInfo'
+        elif dom_rgx.match (word):
+            return 'DomInfo'
+        elif ent_rgx.match (word):
+            return 'EntInfo'
+        elif mor_rgx.match (word):
+            return 'MorInfo'
+
+
     def merge(self):
-        df1 = column_name(df1)
-        df2 = column_name(df2)
 
-        #첫 번째 파일에서 추출한 lemma들을 df1_lemma 리스트에 저장한다
-        df1_lemma = []
-        for i in range(len(df1)):
-            df1_lemma.append(df1.loc[i,'Lemma'])
+        #들어오는 데이터를 병합할 변수
+        global merge_data
+        global cnt
 
+        #처음들어왔을 때는 병합할 필요가 없으므로 열린 파일을 merge_data에 저장
+        if (self.dataFrame_Tab.currentIndex()-1) == 0:
+            merge_data = handle_df_list[0]
+        
+        #두 번째부터는 들어오는 데이터를 data변수에 저장하고 
+        #이전에 저장해둔 merge_data와 data를 concat으로 병합한 뒤
+        #두 데이터를 sort_values로 정렬을 시켜준다.
+        else:
+            data = handle_df_list[self.dataFrame_Tab.currentIndex()-1]
+            merge_data = pd.concat([merge_data,data],ignore_index=True)
+            merge_data = merge_data.sort_values(by='Lemma')
+            merge_data = merge_data.reset_index()
+            cnt += 1
 
-        #두 번째 파일에서 추출한 lemma들을 df1_lemma 리스트에 저장한다.
-        df2_lemma = []
-        for i in range(len(df2)):
-            df2_lemma.append(df2.loc[i,'Lemma'])
+        #사용자가 입력할 col_name.
+        #gui상에서 .text()로 입력받는다.
+        col_data = 'MorInfo1'
 
+        #우선시 되는 데이터 : my_data, 지워져도 되는 데이터 del_data 
+        #gui상에서 .text()로 입력받는다.
+        my_data = 'ZND'
+        del_data = 'ZNZ'
 
-        #df1_lemma와 df2_lemma에서 
-        #공통된 단어의 인덱스를 locate리스트에 저장한다.
-        locate = []
-        for i in range(len(df1_lemma)):
-            for j in range(len(df2_lemma)):
-                if df1_lemma[i] == df2_lemma[j]:
-                    locate.append(df1_lemma.index(df1_lemma[i]))
-                    locate.append(j)
-                    break
+        
+        #파일들을 1개 이상 입력 받으면 실행된
+        if cnt != 0:
+            #중복 단어들을 저장하는 리스트
+            reduplication = []
+            #i는 처음부터 끝에서 두번째에 있는 단어들까지 돌아가고
+            #j는 i번째에 있는 단어 바로 다음 단어랑 비교를 한다.
+            #왜냐하면 정렬이 되어있는 상태기 때문에 바로 전 후의 단어들을 비교해서
+            #앞글자가 다르면 패스를 해서 시간을 단축시키기 위함이다.
+            for i in range(0,len(merge_data)-1):
+                for j in range(i+1, i+cnt+1):
+                    #first에는 i번째 단어를 음절별로 나누어서 저장하고
+                    #second에는 j번쨰(i다음 단어)를 음절로 나누어서 저장한다.
+                    first = Divide(merge_data.loc[i,'Lemma'])
+                    second = Divide(merge_data.loc[j,'Lemma'])
 
+                    #저장한 단어들의 앞글자가 다르면 i를 1증가시켜 다음 단어로 넘어간다.
+                    if first[0] != second[0]:
+                        break
+                    
+                    #만약 단어의 앞글자가 같다면 아래 코드를 실행한다.
+                    elif first[0] == second[0]:
+                        #앞글자는 같지만 단어가 다르면 for문을 종료한다.
+                        if first != second:
+                            break
+                        
+                        #앞글자가 같고 단어까지 같으면 입력 받은 mydata가 i번째에 있는지 아님 j(i+1)번째 있는지 확인한다.
+                        elif first == second:
+                            if my_data in merge_data.loc[i,col_data] and my_data in merge_data.loc[j,col_data]:
+                                pass
+                            elif my_data in merge_data.loc[i,col_data] and del_data in merge_data.loc[j,col_data]:
+                                #reduplication.append(merge_data.iloc[i].values.tolist())
+                                #reduplication.append(merge_data.iloc[j].values.tolist())
 
-class Deco_LexO(QtWidgets.QMainWindow, Ui_Deco_LexO):
-    def __init__(self, parent=None):
-        QtWidgets.QMainWindow.__init__(self, parent=parent)
-        self.setupUi(self)
+                                #stem_data에는 i번째 단어 정보를 리스트형태로 저장하고
+                                #follow_data에는 j번째 (i+1)번째 단어 정보를 리스트 형태로 저장한다.
+                                #변수 x는 follow_data를 돌면서 follow_data요소가 stem_data에 정보가 없으면 
+                                # 그 정보들 check_info()함수에 넘겨서 정보를 col에 저장해준다(ex. MorInfo)
+                                # y는 merge_data의 colum정보들을 돌면서
+                                # check_info로 입력받은 정보가 들어있는 column이 처음으로 빈칸이 나오는 장소에
+                                # stem_data에 들어있지 않은 정보(follow_data)를 merge_data에 넣어준다.
+                                stem_data1 = merge_data.iloc[i].values.tolist()
+                                follow_data1 = merge_data.iloc[j].values.tolist()
+                                for x in range(4, len(follow_data1)-1):
+                                    if follow_data1[x] not in stem_data1:
+                                        col = self.check_info(follow_data1[x])
+                                        col_nme = merge_data.columns
+                                        for y in range(4,len(col_nme)):
+                                           #print()
+                                            if col in col_nme[y] and merge_data.loc[j, col_nme[y]] == '':
+                                                merge_data.loc[j, col_nme[y]] = follow_data1[x]
+                                                break
+                                
+                            elif del_data in merge_data.loc[i,col_data] and my_data in merge_data.loc[j,col_data]:
+                                #reduplication.append(merge_data.iloc[i].values.tolist())
+                                #reduplication.append(merge_data.iloc[j].values.tolist())
+                                stem_data2 = merge_data.iloc[j].values.tolist()
+                                follow_data2 = merge_data.iloc[i].values.tolist()
+                                for x in range(4, len(follow_data2)-1):
+                                    if follow_data2[x] not in stem_data2:
+                                        col = self.check_info(follow_data2[x])
+                                        col_nme = merge_data.columns
+                                        for y in range(4,len(col_nme)):
+                                           #print()
+                                            if col in col_nme[y] and merge_data.loc[j, col_nme[y]] == '':
+                                                merge_data.loc[j, col_nme[y]] = follow_data2[x]
+                                                break
+        
+                                    
+        print(merge_data)
 
-    def keyPressEvent(self, e):
-        print(event.key())
 
 if __name__ == "__main__":
     import sys
