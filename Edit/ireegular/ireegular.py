@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os, re
 
-df = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\Edit\example\DECO-Ver5.2-NS-2019-Kernel-DevTest.csv',encoding = 'utf-8-sig')
+df = pd.read_csv(r'E:\Programming\python\NLP\DecoLexO\DecoLexO\example\Test_verb.csv',encoding = 'utf-8-sig')
 
 #첫 행 살리기
 col_rgx = re.compile(r'[A-Za-z]{6,}[:\.]?')
@@ -190,34 +190,38 @@ def irreg(df, jongsung, old_eomi, new_eomi):
         d_lst = list(Divide(str(x)))
         divided_lst.append(d_lst)
 
+    w_lst = []
     #원하는 종성 삭제하기
     for x in divided_lst:
         if len(x) >= 2:
             if x[-2][2] == str(jongsung):
                 x[-2][2] = ' '
+
+                #다시 합치기
+                p_lst = []
+                for y in x:
+                    k = jaso_combi(y[0], y[1], y[2])
+                    p_lst.append(k)
+                    word = "".join(p_lst)
+                
+                y = re.sub(old_eomi + '$', new_eomi, word)
+                w_lst.append(y)
             else:
-                continue
+                p_lst = []
+                for y in x:
+                    k = jaso_combi(y[0], y[1], y[2])
+                    p_lst.append(k)
+                    word = "".join(p_lst)
+                w_lst.append(word)
         else:
             continue
-    
-    #자모음 다시 합치기
-    w_lst = []
-    for x in divided_lst:
-        p_lst = []
-        for y in x:
-            k = jaso_combi(y[0], y[1], y[2])
-            p_lst.append(k)
-            word = "".join(p_lst)
-        w_lst.append(word)
+
 
     #열 추가
     df['Lemma'] = w_lst
 
     #열 위치 재정렬
     df = df[col_nme]
-
-    #어미 바꾸기
-    end_rpl(df, 'Lemma', old_eomi, new_eomi)
 
     return(df)
 
