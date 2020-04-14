@@ -51,6 +51,7 @@ def check_info(self, word):
     elif mor_rgx.match (word):
         return 'MorInfo'
 
+
 # df을 입력받아 column name들을 지정해주고 df화 해주는 작업을 하는 함수
 def column_name(df):
     # 첫 행 살리기
@@ -1752,29 +1753,29 @@ def irreg(df, jongsung, old_eomi, new_eomi):
     w_lst = []
     # 원하는 종성 삭제하기
     for x in divided_lst:
-        if len(x) >= 2:
+        if len (x) >= 2:
             # 원하는 불규칙 필터링
-            if x[-2][2] == str(jongsung):
+            if x[-2][2] == str (jongsung):
                 x[-2][2] = ' '
 
-                #다시 합치기
+                # 다시 합치기
                 p_lst = []
                 for y in x:
-                    k = jaso_combi(y[0], y[1], y[2])
-                    p_lst.append(k)
-                    word = "".join(p_lst)
-                
+                    k = jaso_combi (y[0], y[1], y[2])
+                    p_lst.append (k)
+                    word = "".join (p_lst)
+
                 # 어미 바꾸기
-                y = re.sub(old_eomi + '$', new_eomi, word)
-                w_lst.append(y)
+                y = re.sub (old_eomi + '$', new_eomi, word)
+                w_lst.append (y)
             else:
                 # 다시 합치기
                 p_lst = []
                 for y in x:
-                    k = jaso_combi(y[0], y[1], y[2])
-                    p_lst.append(k)
-                    word = "".join(p_lst)
-                w_lst.append(word)
+                    k = jaso_combi (y[0], y[1], y[2])
+                    p_lst.append (k)
+                    word = "".join (p_lst)
+                w_lst.append (word)
         else:
             continue
 
@@ -1921,6 +1922,7 @@ class Ui_Deco_LexO (object):
 
         Deco_LexO.setObjectName ("Deco_LexO")
         Deco_LexO.resize (709, 732)
+        Deco_LexO.setWindowIcon (QtGui.QIcon (':/Image/LexO_icon.ico'))
         self.centralwidget = QtWidgets.QWidget (Deco_LexO)
         self.centralwidget.setObjectName ("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout (self.centralwidget)
@@ -2435,7 +2437,7 @@ class Ui_Deco_LexO (object):
         ##Question button2
         self.Question_button_2 = QtWidgets.QPushButton (self.Edit_tab)
         self.Question_button_2.setEnabled (False)
-        self.Question_button_2.setGeometry (QtCore.QRect (305, 42, 31, 41))
+        self.Question_button_2.setGeometry (QtCore.QRect (305, 40, 31, 41))
         self.Question_button_2.setText ("")
         self.Question_button_2.setIcon (icon)
         self.Question_button_2.setIconSize (QtCore.QSize (20, 20))
@@ -2469,8 +2471,6 @@ class Ui_Deco_LexO (object):
         self.actionMerge_files.setObjectName ("actionMerge_files")
         self.actionQuit = QtWidgets.QAction (Deco_LexO)
         self.actionQuit.setObjectName ("actionQuit")
-        self.actionAcknowledgement = QtWidgets.QAction (Deco_LexO)
-        self.actionAcknowledgement.setObjectName ("actionAcknowledgement")
         self.actionAbout_DecoLexO = QtWidgets.QAction (Deco_LexO)
         self.actionAbout_DecoLexO.setObjectName ("actionAbout_DecoLexO")
         self.menuFile.addAction (self.actionOpen_file_s)
@@ -2482,8 +2482,6 @@ class Ui_Deco_LexO (object):
         self.menuFile.addAction (self.actionMerge_files)
         self.menuFile.addSeparator ()
         self.menuFile.addAction (self.actionQuit)
-        self.menuHelp.addAction (self.actionAcknowledgement)
-        self.menuHelp.addSeparator ()
         self.menuHelp.addAction (self.actionAbout_DecoLexO)
         self.menubar.addAction (self.menuFile.menuAction ())
         self.menubar.addAction (self.menuHelp.menuAction ())
@@ -2548,9 +2546,10 @@ class Ui_Deco_LexO (object):
         self.actionOpen_file_s.triggered.connect (self.openFiles)
         self.actionSave_file_as.triggered.connect (self.save_as)
         self.actionSave.triggered.connect (self.Save_current_table_function)
-        self.actionMerge_files.triggered.connect(self.Merge_module)
+        self.actionMerge_files.triggered.connect (self.Merge_module)
         self.actionQuit.triggered.connect (QtCore.QCoreApplication.instance ().quit)
         self.actionOpen_Encrypt_file.triggered.connect (self.Dec_module)
+        self.actionAbout_DecoLexO.triggered.connect(self.About_LexO_moudule)
 
         # Edit part connect
         self.Add_start.released.connect (self.add_function)
@@ -2606,7 +2605,7 @@ class Ui_Deco_LexO (object):
         self.Question_button.setToolTip (_translate ("Deco_LexO",
                                                      "<html><head/><body><p>If you want to change items directly in the table, press enter twice to apply.</p></body></html>"))
         self.Question_button_2.setToolTip (_translate ("Deco_LexO",
-                                                       "<html><head/><body><p>If you want to change items directly in the table, press enter twice to apply.</p></body></html>"))
+                                                       "<html><head/><body><p>{Add}: Add function helps users to add letters(or digits) in particular column where user selected.</p><p>{Remove}: Remove function helps users to delete letters(or digits) in particular column where user selected.</p><p>{Replace}: Replace function helps users replacing letters(or digits) to what they wants in particular column where they selected.</p><p>{Irregular}: This fuction helps users to change irregular words to another form.</p></body></html>"))
         self.tabWidget_1.setTabText (self.tabWidget_1.indexOf (self.Modifying_Tab), _translate ("Deco_LexO", "Filter"))
 
         # Edit part GUI
@@ -2670,11 +2669,10 @@ class Ui_Deco_LexO (object):
         self.actionSave.setShortcut (_translate ("Deco_LexO", "Ctrl+S"))
         self.actionSave_file_as.setText (_translate ("Deco_LexO", "Save file as..."))
         self.actionSave_file_as.setShortcut (_translate ("Deco_LexO", "Ctrl+Shift+S"))
-        self.actionMerge_files.setText(_translate("Deco_LexO","Merge files"))
-        self.actionMerge_files.setShortcut(_translate("Deco_LexO","Ctrl+M"))
+        self.actionMerge_files.setText (_translate ("Deco_LexO", "Merge files"))
+        self.actionMerge_files.setShortcut (_translate ("Deco_LexO", "Ctrl+M"))
         self.actionQuit.setText (_translate ("Deco_LexO", "Quit"))
         self.actionQuit.setShortcut (_translate ("Deco_LexO", "Ctrl+Q"))
-        self.actionAcknowledgement.setText (_translate ("Deco_LexO", "Acknowledgement"))
         self.actionAbout_DecoLexO.setText (_translate ("Deco_LexO", "About DecoLexO"))
 
     # 첫번째 파일을 오픈해 줄 때만 파일을 열어주는 함수
@@ -3280,6 +3278,7 @@ class Ui_Deco_LexO (object):
         enc_loc = str (enc_fname).split ("', '")[0][2:]
         self.Dec_window = subwindow ()
         self.Dec_window.createWindow (570, 300)
+        self.Dec_window.setWindowIcon (QtGui.QIcon (':/Image/LexO_icon.ico'))
         self.frame = QtWidgets.QFrame (self.Dec_window)
         self.frame.setGeometry (QtCore.QRect (20, 60, 531, 181))
         self.frame.setFrameShape (QtWidgets.QFrame.Box)
@@ -3294,6 +3293,7 @@ class Ui_Deco_LexO (object):
         self.label_2.setObjectName ("label_2")
         self.Dec_iv = QtWidgets.QLineEdit (self.frame)
         self.Dec_iv.setGeometry (QtCore.QRect (120, 20, 381, 21))
+        self.Dec_iv.setAlignment (QtCore.Qt.AlignCenter)
         self.Dec_iv.setObjectName ("Dec_iv")
         self.label_3 = QtWidgets.QLabel (self.frame)
         self.label_3.setGeometry (QtCore.QRect (10, 50, 101, 20))
@@ -3354,7 +3354,7 @@ class Ui_Deco_LexO (object):
         self.DecryStart.setObjectName ("DecryStart")
         QtCore.QMetaObject.connectSlotsByName (self.Dec_window)
         _translate = QtCore.QCoreApplication.translate
-        self.Dec_window.setWindowTitle (_translate ("Form", "Form"))
+        self.Dec_window.setWindowTitle (_translate ("Form", "Decrypt Options"))
         self.Dec_iv.setText ('황창회는 바보')
         self.Dec_Hn.setText ('sha256')
         self.Dec_Pw.setText ('WJs<&H4yjzsAa[Na')
@@ -3429,7 +3429,8 @@ class Ui_Deco_LexO (object):
 
     def Merge_module(self):
         self.Merge_window = subwindow ()
-        self.Merge_window.createWindow(390,310)
+        self.Merge_window.createWindow (390, 310)
+        self.Merge_window.setWindowIcon (QtGui.QIcon (':/Image/LexO_icon.ico'))
         self.frame = QtWidgets.QFrame (self.Merge_window)
         self.frame.setGeometry (QtCore.QRect (10, 30, 371, 271))
         self.frame.setFrameShape (QtWidgets.QFrame.Box)
@@ -3504,7 +3505,7 @@ class Ui_Deco_LexO (object):
         self.RuleBrowseButton.released.connect (self.open_rule_file)
         self.MergeStartButton.released.connect (self.merge)
 
-        self.Merge_window.show()
+        self.Merge_window.show ()
 
     def open_merge_files(self):
         global merge_fname
@@ -3635,6 +3636,145 @@ class Ui_Deco_LexO (object):
         except Exception:
             pass
 
+    ##About LexO
+    def About_LexO_moudule(self):
+        self.About_window = subwindow ()
+        self.About_window.createWindow (540, 279)
+        self.About_window.setObjectName ("Form")
+        self.label = QtWidgets.QLabel (self.About_window)
+        self.label.setGeometry (QtCore.QRect (0, 10, 281, 30))
+        font = QtGui.QFont ()
+        font.setFamily ("HY산B")
+        font.setPointSize (16)
+        font.setBold (True)
+        font.setItalic (False)
+        font.setWeight (75)
+        self.label.setFont (font)
+        self.label.setAlignment (QtCore.Qt.AlignCenter)
+        self.label.setObjectName ("label")
+        self.label_2 = QtWidgets.QLabel (self.About_window)
+        self.label_2.setGeometry (QtCore.QRect (10, 235, 521, 20))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setPointSize (8)
+        self.label_2.setFont (font)
+        self.label_2.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_2.setObjectName ("label_2")
+        self.label_3 = QtWidgets.QLabel (self.About_window)
+        self.label_3.setGeometry (QtCore.QRect (0, 250, 531, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setPointSize (8)
+        self.label_3.setFont (font)
+        self.label_3.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_3.setObjectName ("label_3")
+        self.frame = QtWidgets.QFrame (self.About_window)
+        self.frame.setGeometry (QtCore.QRect (10, 50, 521, 181))
+        self.frame.setFrameShape (QtWidgets.QFrame.Box)
+        self.frame.setFrameShadow (QtWidgets.QFrame.Raised)
+        self.frame.setObjectName ("frame")
+        self.label_8 = QtWidgets.QLabel (self.frame)
+        self.label_8.setGeometry (QtCore.QRect (192, 150, 331, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        self.label_8.setFont (font)
+        self.label_8.setObjectName ("label_8")
+        self.label_9 = QtWidgets.QLabel (self.frame)
+        self.label_9.setGeometry (QtCore.QRect (-10, 150, 201, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setBold (True)
+        font.setItalic (False)
+        font.setWeight (75)
+        self.label_9.setFont (font)
+        self.label_9.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_9.setObjectName ("label_9")
+        self.label_6 = QtWidgets.QLabel (self.frame)
+        self.label_6.setGeometry (QtCore.QRect (223, 90, 261, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        self.label_6.setFont (font)
+        self.label_6.setAlignment (QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.label_6.setObjectName ("label_6")
+        self.label_4 = QtWidgets.QLabel (self.frame)
+        self.label_4.setGeometry (QtCore.QRect (40, 90, 181, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setBold (True)
+        font.setItalic (False)
+        font.setWeight (75)
+        self.label_4.setFont (font)
+        self.label_4.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_4.setObjectName ("label_4")
+        self.label_5 = QtWidgets.QLabel (self.frame)
+        self.label_5.setGeometry (QtCore.QRect (-10, 10, 181, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setItalic (True)
+        self.label_5.setFont (font)
+        self.label_5.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_5.setObjectName ("label_5")
+        self.label_7 = QtWidgets.QLabel (self.frame)
+        self.label_7.setGeometry (QtCore.QRect (-10, 130, 181, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setItalic (True)
+        self.label_7.setFont (font)
+        self.label_7.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_7.setObjectName ("label_7")
+        self.label_10 = QtWidgets.QLabel (self.frame)
+        self.label_10.setGeometry (QtCore.QRect (213, 60, 261, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        self.label_10.setFont (font)
+        self.label_10.setAlignment (QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.label_10.setObjectName ("label_10")
+        self.label_11 = QtWidgets.QLabel (self.frame)
+        self.label_11.setGeometry (QtCore.QRect (30, 60, 181, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setBold (True)
+        font.setItalic (False)
+        font.setWeight (75)
+        self.label_11.setFont (font)
+        self.label_11.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_11.setObjectName ("label_11")
+        self.label_12 = QtWidgets.QLabel (self.frame)
+        self.label_12.setGeometry (QtCore.QRect (210, 30, 261, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        self.label_12.setFont (font)
+        self.label_12.setAlignment (QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.label_12.setObjectName ("label_12")
+        self.label_13 = QtWidgets.QLabel (self.frame)
+        self.label_13.setGeometry (QtCore.QRect (27, 30, 181, 21))
+        font = QtGui.QFont ()
+        font.setFamily ("휴먼옛체")
+        font.setBold (True)
+        font.setItalic (False)
+        font.setWeight (75)
+        self.label_13.setFont (font)
+        self.label_13.setAlignment (QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.label_13.setObjectName ("label_13")
+        QtCore.QMetaObject.connectSlotsByName (self.About_window)
+        _translate = QtCore.QCoreApplication.translate
+        self.About_window.setWindowTitle (_translate ("Form", "About DecoLexO"))
+        self.label.setText (_translate ("Form", "About DecoLexO"))
+        self.label_2.setText (_translate ("Form", "COPYRIGHT @ 2020 DICORA HANKUK UNIVERSITY OF FOREIGN STUDIES"))
+        self.label_3.setText (_translate ("Form", "81 OYDAE-RO CHEOIN-GU YONGIN-SI GYEONGGI-DO 17035 KOREA"))
+        self.label_8.setText (_translate ("Form", ", Professor, Ph.D., Director of DICORA, HUFS"))
+        self.label_9.setText (_translate ("Form", "Jeesun Nam"))
+        self.label_6.setText (_translate ("Form", ", Senior Researcher of DICORA, HUFS"))
+        self.label_4.setText (_translate ("Form", "ChangHoe Hwang"))
+        self.label_5.setText (_translate ("Form", "Program Developed by "))
+        self.label_7.setText (_translate ("Form", "Directed by "))
+        self.label_10.setText (_translate ("Form", ", Research Assistant of DICORA, HUFS"))
+        self.label_11.setText (_translate ("Form", "SungHyun Lee"))
+        self.label_12.setText (_translate ("Form", ", Research Assistant of DICORA, HUFS"))
+        self.label_13.setText (_translate ("Form", "ShinWoo Kim"))
+        self.About_window.show()
+
+
 
 if __name__ == "__main__":
     import sys
@@ -3643,5 +3783,5 @@ if __name__ == "__main__":
     Deco_LexO = QtWidgets.QMainWindow ()
     ui = Ui_Deco_LexO ()
     ui.setupUi (Deco_LexO)
-    Deco_LexO.showMaximized()
+    Deco_LexO.showMaximized ()
     sys.exit (app.exec_ ())
