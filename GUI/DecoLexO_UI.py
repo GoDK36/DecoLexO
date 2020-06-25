@@ -196,9 +196,10 @@ def Equals(df, col, word, original_index):
     # 이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     # 컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
     # original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
+    information_col = df.columns.tolist()
     for i in range (len (word_list)):
         for j in range (len (df)):
-            if df.loc[j, col] == word_list[i]:
+            if col in information_col[j] or df.loc[j, col] == word_list[i]:
                 answer = df.iloc[j]
                 filtered_list.append (list (answer))
                 original_index.append (j)
@@ -237,9 +238,10 @@ def Contains(df, col, word, original_index):
     # 이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     # 컬럼 정보는 제외된 순수 데이터 정보만 filteres_list에 저장이된다.
     # original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
+    information_col = df.columns.tolist()
     for i in range (len (word_list)):
         for j in range (len (df)):
-            if word[i] in df.loc[j, col]:
+            if col in information_col[j] or word_list[i] in df.loc[j, col]:
                 result = df.iloc[j]
                 filtered_list.append (list (result))
                 original_index.append (j)
@@ -277,9 +279,10 @@ def Starts_With(df, col, word, original_index):
     # answer에 일치 정보의 열을 통째로 저장해준다.
     # 이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     # original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
+    information_col = df.columns.tolist()
     for i in range (len (word_list)):
         for j in range (len (df)):
-            if df.loc[j, col].startswith (word_list[i]):
+            if col in information_col[j] or df.loc[j, col].startswith (word_list[i]):
                 result = df.iloc[j]
                 filtered_list.append (list (result))
                 original_index.append (j)
@@ -317,9 +320,10 @@ def Ends_With(df, col, word, original_index):
     # answer에 일치 정보의 열을 통째로 저장해준다.
     # 이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     # original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
+    information_col = df.columns.tolist()
     for i in range (len (word_list)):
         for j in range (len (df)):
-            if df.loc[j, col].endswith (word_list[i]):
+            if col in information_col[j] or df.loc[j, col].endswith (word_list[i]):
                 result = df.iloc[j]
                 filtered_list.append (list (result))
                 original_index.append (j)
@@ -357,9 +361,10 @@ def Is_Empty(df, col, word, original_index):
     # answer에 일치 정보의 열을 통째로 저장해준다.
     # 이때는 시리즈 형태로 저장되어 있기 때문에 filtered_list에 answer을 list화 한 정보를 넣어주면
     # original_index에는 원본데이터에서 찾은 데이터들의 원본 인덱스 값을 저장한다.
+    information_col = df.columns.tolist()
     for i in range (len (word_list)):
         for j in range (len (df)):
-            if word_list[i] not in df.loc[j, col]:
+            if col in information_col[j] or word_list[i] not in df.loc[j, col]:
                 result = df.iloc[j]
                 filtered_list.append (list (result))
                 original_index.append (j)
@@ -372,7 +377,6 @@ def Is_Empty(df, col, word, original_index):
     filtered_df.head ()
 
     return filtered_df
-
 
 ######################################################################
 # filter part에서 phonological 부분 중 초성 중성 종성이 입력 되었을 때 #
@@ -1813,16 +1817,61 @@ def duprow(df, sel):
 
 
 ##dic파일로 저장하는 함수
-####dic작성 시작####
-def df2dic(df, filepath):
-    # 딕셔너리 자료형의 특징을 이용하여 리스트 요소 순서를 유지하며 중복 제거하기
 
-    def rmvspc(alist):
-        d = OrderedDict ()
-        for i in alist:
-            d[i] = True
-            res = list (d.keys ())
-        return res
+# 딕셔너리 자료형의 특징을 이용하여 리스트 요소 순서를 유지하며 중복 제거하기
+
+def rmvspc(alist):
+    d = OrderedDict ()
+    for i in alist:
+        d[i] = True
+        res = list (d.keys ())
+    return res
+
+####dic작성 시작####
+
+def df2dic(df, filepath):
+
+    # 필요한 구분자들
+    plus = "+"
+    comma = ','
+
+    # 나중에 txt파일에 쓰기 쉽게 하기 위해 리스트 형식으로 저장
+    dic_lst = []
+
+    ind_l = len (df.index)  # 데이터의 총 개수(index 길이)
+
+    for i in range (0, ind_l):
+        dic = ''
+        ind_lst = list (df.iloc[i])
+        inf_lst = rmvspc (ind_lst)  # 중복되는 요소인 ''을 하나로 줄이기
+        inf_lst.remove ('')  # ''는 필요 없으므로 삭제
+        lem = inf_lst[0]  # lemma 추출
+        dic = lem + comma # 문자열 형식으로 합치기(Lemma 넣어주기)
+
+        # 카테고리 추가
+        cat = inf_lst[1]
+        dic = dic + cat
+
+        # 그 외의 info들을 모두 'ZNZ+LEO+SLB' 이런 형식으로 더해주기
+        for x in range (2, len (inf_lst)):
+            inf = inf_lst[x]
+            dic = dic + plus + inf
+
+        dic_lst.append (str (dic))
+
+    # writedata.py
+    f = open (filepath, 'w', encoding='utf-8-sig')
+
+    for i in range (len (dic_lst)):
+        f.write ('%s \n' % dic_lst[i])
+
+    f.close ()
+
+
+
+####inflec.dic작성 시작####
+
+def inflec_df2dic(df, filepath):
 
     # 필요한 구분자들
     spc = "ㆍ"
@@ -2783,16 +2832,19 @@ class Ui_Deco_LexO (object):
         self.FSecL_1.setText (''), self.FSecL_2.setText (''), self.FSecL_3.setText ('')
         self.FLast_1.setText (''), self.FLast_2.setText (''), self.FLast_3.setText ('')
 
-    ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
+    ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, inflec_df2dic to_csv)
     def save_as(self):
         global handle_df
 
         result_df = handle_df_list[self.dataFrame_Tab.currentIndex () - 1]
-        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic)')
+        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)')
 
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split ('.')[-1]
+
+        # inf 형태 슬라이싱
+        inffileform = sfileloc.split('.')[-2]
 
         try:
             ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
@@ -2808,6 +2860,10 @@ class Ui_Deco_LexO (object):
                 col_nme = handle_df.columns.tolist ()
                 result_df = result_df[col_nme]
                 return (result_df.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'))
+            if inffileform == 'inf':
+                col_nme = handle_df.columns.tolist ()
+                result_df = result_df[col_nme]
+                return (inflec_df2dic (result_df, sfileloc))
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist ()
                 result_df = result_df[col_nme]
@@ -2822,11 +2878,13 @@ class Ui_Deco_LexO (object):
 
         current_table = filtered_df_list[self.dataFrame_Tab.currentIndex () - 1]
 
-        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic)')
+        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)')
 
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split ('.')[-1]
+
+        inffileform = sfileloc.split('.')[-2]
 
         try:
             ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
@@ -2842,6 +2900,10 @@ class Ui_Deco_LexO (object):
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
                 return (current_table.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'))
+            if inffileform == 'inf':
+                col_nme = handle_df.columns.tolist ()
+                result_df = result_df[col_nme]
+                return (inflec_df2dic (result_df, sfileloc))
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
