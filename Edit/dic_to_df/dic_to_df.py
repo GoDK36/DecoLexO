@@ -2,24 +2,41 @@ import pandas as pd
 import numpy as np
 import re
 
-def dic2df(file_path):
+def infdic2df(file_path):
     # dic 파일 전처리
     f1 = open(file_path, "r", encoding='utf-8-sig')
     dic = f1.readlines()
+
+    sfileloc = str (file_path).split ("', '")[0][2:]
+
+    dicfileform = sfileloc.split('.')[-1]
+
+    inffileform = sfileloc.split('.')[-2]
+
     data = []
     for info in dic:
         info = info.replace(' \n', '')
-        syl = info.replace('.', '+')
-        syl = syl.split(',')[1:][0]
-        info = syl.split('+')
+        
+        # inf.dic 파일 열때
+        if inffileform == 'inf':
+            syl = info.replace('.', '+')
+            syl = syl.split(',')[1:][0]
+            info = syl.split('+')
 
-        # 카테고리 만들기
-        cat = info[-1]
-        cat = cat[-3:]
-        cat = cat[0] + 'S' + cat[1:]
-        del info[-1]
-        del info[1]
-        info.insert(1, cat)
+            # 카테고리 만들기
+            cat = info[-1]
+            cat = cat[-3:]
+            cat = cat[0] + 'S' + cat[1:]
+            del info[-1]
+            del info[1]
+            info.insert(1, cat)
+        
+        # dic 파일 열때
+        elif dicfileform == 'dic':
+            info = info.split('+')
+
+        else:
+            pass
 
         data.append(info)
 
@@ -101,4 +118,4 @@ def dic2df(file_path):
     
     return df
 
-    print(dic2df())
+print(infdic2df(r"E:\Develop\python\NLP\DecoLexO\DecoLexO\example\inf_res.inf.dic"))

@@ -15,6 +15,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from collections import OrderedDict
 import DecoLexO_Resource_rc
 
+# !TODO: dic 파일이나 inf.dic 파일 불러오고 열었을때 문제
+
 # tab_nme list
 # 열린 탭의 이름을 저장하는 리스트
 tab_name_list = []
@@ -159,6 +161,198 @@ def column_name(df):
 
     df.columns = col_nme
 
+    return df
+
+
+# inf.dic 파일을 DataFrame화하는 함수
+
+def infdic2df(file_path):
+    # inf.dic 파일 전처리
+    f1 = open(file_path, "r", encoding='utf-8-sig')
+    dic = f1.readlines()
+    data = []
+    for info in dic:
+        info = info.replace(' \n', '')
+        syl = info.replace('.', '+')
+        syl = syl.split(',')[1:][0]
+        info = syl.split('+')
+
+        # 카테고리 만들기
+        cat = info[-1]
+        cat = cat[-3:]
+        cat = cat[0] + 'S' + cat[1:]
+        del info[-1]
+        del info[1]
+        info.insert(1, cat)
+    
+        data.append(info)
+
+    # 필요한 정규표현식
+    sem_rgx = re.compile(r'[Q][A-Z]{3}')   # semantic tagset
+    syn_rgx = re.compile(r'[Y][A-Z]{3}')   # syntactic tagset
+    dom_rgx = re.compile(r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')   # domain tagset
+    ent_rgx = re.compile(r'[X]{2}[A-Z]{2}')  # entity tagset
+    mor_rgx = re.compile(r'[A-Z]{3}')  # morph tagset
+    word_rgx = re.compile(r"[가-힣]+")  # Lemma 찾기
+    cat_rgx = re.compile(r"[A-Z]S[0-9]{2}")  # Category 찾기
+
+    ## 리스트에 ''을 추가하여 각 tag의 종류별로 길이 맞추기
+    data_lst = []
+    for info in data:
+        temp_lst = []
+
+        # 처음 Lemma와 Category 찾기 (index 0, 1)
+        if len(temp_lst) == 0:
+            for tag in info:
+                if word_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+                elif cat_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+        
+        # MorInfo 찾기 (index 2 ~ 16, length 17)
+        if len(temp_lst) == 2:
+            for tag in info:
+                if mor_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # MorInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 17:
+                temp_lst.append('')
+        
+        # SynInfo 찾기 (index 17 ~ 31, length 32)
+        if len(temp_lst) == 17:
+            for tag in info:
+                if syn_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # SynInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 32:
+                temp_lst.append('')
+
+        # SemInfo 찾기 (index 32 ~ 46, length 47)
+        if len(temp_lst) == 32:
+            for tag in info:
+                if sem_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # SemInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 47:
+                temp_lst.append('')
+
+        # EntInfo 찾기 (index 47 ~ 49, length 50)
+        if len(temp_lst) == 47:
+            for tag in info:
+                if ent_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # EntInfo tag의 종류는 최대 3개, 3개를 채울때까지 '' 추가
+            while len(temp_lst) < 50:
+                temp_lst.append('')
+        # DomInfo 찾기 (index 50 ~ 64, length 65)
+        if len(temp_lst) == 50:
+            for tag in info:
+                if dom_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # DomInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 66:
+                temp_lst.append('')
+        data_lst.append(temp_lst)
+
+    ## 데이터 프레임화
+    df = pd.DataFrame(data_lst)
+    
+    
+    return df
+
+
+def dic2df(file_path):
+    # dic 파일 전처리
+    f1 = open(file_path, "r", encoding='utf-8-sig')
+    dic = f1.readlines()
+    data = []
+    for info in dic:
+        info = info.replace(' \n', '')
+        info = info.split('+')
+    
+        data.append(info)
+
+    # 필요한 정규표현식
+    sem_rgx = re.compile(r'[Q][A-Z]{3}')   # semantic tagset
+    syn_rgx = re.compile(r'[Y][A-Z]{3}')   # syntactic tagset
+    dom_rgx = re.compile(r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')   # domain tagset
+    ent_rgx = re.compile(r'[X]{2}[A-Z]{2}')  # entity tagset
+    mor_rgx = re.compile(r'[A-Z]{3}')  # morph tagset
+    word_rgx = re.compile(r"[가-힣]+")  # Lemma 찾기
+    cat_rgx = re.compile(r"[A-Z]S[0-9]{2}")  # Category 찾기
+
+    ## 리스트에 ''을 추가하여 각 tag의 종류별로 길이 맞추기
+    data_lst = []
+    for info in data:
+        temp_lst = []
+
+        # 처음 Lemma와 Category 찾기 (index 0, 1)
+        if len(temp_lst) == 0:
+            for tag in info:
+                if word_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+                elif cat_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+        
+        # MorInfo 찾기 (index 2 ~ 16, length 17)
+        if len(temp_lst) == 2:
+            for tag in info:
+                if mor_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # MorInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 17:
+                temp_lst.append('')
+        
+        # SynInfo 찾기 (index 17 ~ 31, length 32)
+        if len(temp_lst) == 17:
+            for tag in info:
+                if syn_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # SynInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 32:
+                temp_lst.append('')
+
+        # SemInfo 찾기 (index 32 ~ 46, length 47)
+        if len(temp_lst) == 32:
+            for tag in info:
+                if sem_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # SemInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 47:
+                temp_lst.append('')
+
+        # EntInfo 찾기 (index 47 ~ 49, length 50)
+        if len(temp_lst) == 47:
+            for tag in info:
+                if ent_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # EntInfo tag의 종류는 최대 3개, 3개를 채울때까지 '' 추가
+            while len(temp_lst) < 50:
+                temp_lst.append('')
+        # DomInfo 찾기 (index 50 ~ 64, length 65)
+        if len(temp_lst) == 50:
+            for tag in info:
+                if dom_rgx.fullmatch(tag):
+                    temp_lst.append(tag)
+
+            # DomInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
+            while len(temp_lst) < 66:
+                temp_lst.append('')
+        data_lst.append(temp_lst)
+
+    ## 데이터 프레임화
+    df = pd.DataFrame(data_lst)
+    
+    
     return df
 
 
@@ -1888,8 +2082,11 @@ def inflec_df2dic(df, filepath):
         # dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
         dic = "ㆍ"
         ind_lst = list (df.iloc[i])
-        inf_lst = rmvspc (ind_lst)  # 중복되는 요소인 ''을 하나로 줄이기
-        inf_lst.remove ('')  # ''는 필요 없으므로 삭제
+        if '' in ind_lst:
+            inf_lst = rmvspc (ind_lst)  # 중복되는 요소인 ''을 하나로 줄이기
+            inf_lst.remove ('')  # ''는 필요 없으므로 삭제
+        else:
+            inf_lst = ind_lst
         lem = inf_lst[0]  # lemma 추출
         sep_lem = spc.join (lem)  # lemma의 각 음절마다 ㆍ삽입
         dic = dic + sep_lem + com + lem + dot  # 문자열 형식으로 합치기('ㆍ가ㆍ결,가결.' 이 부분까지 완성)
@@ -1917,7 +2114,6 @@ def inflec_df2dic(df, filepath):
         f.write ('%s \n' % dic_lst[i])
 
     f.close ()
-
 
 #############
 # GUI PART  #
@@ -2764,42 +2960,109 @@ class Ui_Deco_LexO (object):
         global count
         global filtered_df_list
 
-        try:
-            fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '', "CSV Files(*.csv)")
+        fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '', "CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)")
+        
+        sfileloc = str (fname).split ("', '")[0][2:]
 
-            ##아무 선택도 안하고 취소할때는 넘어가기
-            if fname == ('', ''):
-                pass
-            else:
-                self.new_tab = QtWidgets.QWidget ()
-                self.new_tab.setObjectName ("new_tab")
-                self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
-                self.gridLayout_2.setObjectName ("gridLayout_2")
-                alpha[count] = QtWidgets.QTableWidget (self.new_tab)
-                alpha[count].setColumnCount (0)
-                alpha[count].setRowCount (0)
-                self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
-                self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
-                tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
-                Ofileloc = str (fname).split ("', '")[0][2:]
-                original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
-                handle_df = column_name (original_read)
-                handle_df_list.append (handle_df)
-                filtered_df = handle_df.copy ()
-                filtered_df_list.append (filtered_df)
-                alpha[count].setColumnCount (len (handle_df.columns))
-                header = handle_df.columns
-                alpha[count].setHorizontalHeaderLabels (header)
-                alpha[count].setRowCount (len (handle_df.index))
-                self.readFiles (handle_df)
-                Tab_index += 1
-                self.dataFrame_Tab.setCurrentIndex (Tab_index)
+        sfileform = sfileloc.split ('.')[-1]
 
-                # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
-                alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
+        # inf 형태 슬라이싱
+        inffileform = sfileloc.split('.')[-2]
+        
+        print(inffileform)
 
-        except Exception:
+        ##아무 선택도 안하고 취소할때는 넘어가기
+        if fname == ('', ''):
             pass
+
+        # csv 파일 열기
+        elif sfileform == 'csv':
+            self.new_tab = QtWidgets.QWidget ()
+            self.new_tab.setObjectName ("new_tab")
+            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+            self.gridLayout_2.setObjectName ("gridLayout_2")
+            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+            alpha[count].setColumnCount (0)
+            alpha[count].setRowCount (0)
+            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
+            tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
+            Ofileloc = str (fname).split ("', '")[0][2:]
+            original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
+            handle_df = column_name (original_read)
+            handle_df_list.append (handle_df)
+            filtered_df = handle_df.copy ()
+            filtered_df_list.append (filtered_df)
+            alpha[count].setColumnCount (len (handle_df.columns))
+            header = handle_df.columns
+            alpha[count].setHorizontalHeaderLabels (header)
+            alpha[count].setRowCount (len (handle_df.index))
+            self.readFiles (handle_df)
+            Tab_index += 1
+            self.dataFrame_Tab.setCurrentIndex (Tab_index)
+
+            # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+            alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
+
+        # inf.dic 파일 열기
+        elif inffileform == 'inf':
+            self.new_tab = QtWidgets.QWidget ()
+            self.new_tab.setObjectName ("new_tab")
+            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+            self.gridLayout_2.setObjectName ("gridLayout_2")
+            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+            alpha[count].setColumnCount (0)
+            alpha[count].setRowCount (0)
+            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
+            tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
+            Ofileloc = str (fname).split ("', '")[0][2:]
+            original_read = infdic2df(Ofileloc)
+            print("k")
+            handle_df = column_name (original_read)
+            handle_df_list.append (handle_df)
+            filtered_df = handle_df.copy ()
+            filtered_df_list.append (filtered_df)
+            alpha[count].setColumnCount (len (handle_df.columns))
+            header = handle_df.columns
+            alpha[count].setHorizontalHeaderLabels (header)
+            alpha[count].setRowCount (len (handle_df.index))
+            self.readFiles (handle_df)
+            Tab_index += 1
+            self.dataFrame_Tab.setCurrentIndex (Tab_index)
+
+            # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+            alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
+        
+        # dic 파일 열기
+        elif sfileform == 'dic':
+            self.new_tab = QtWidgets.QWidget ()
+            self.new_tab.setObjectName ("new_tab")
+            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+            self.gridLayout_2.setObjectName ("gridLayout_2")
+            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+            alpha[count].setColumnCount (0)
+            alpha[count].setRowCount (0)
+            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
+            tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
+            Ofileloc = str (fname).split ("', '")[0][2:]
+            original_read = dic2df(Ofileloc)
+            handle_df = column_name (original_read)
+            handle_df_list.append (handle_df)
+            filtered_df = handle_df.copy ()
+            filtered_df_list.append (filtered_df)
+            alpha[count].setColumnCount (len (handle_df.columns))
+            header = handle_df.columns
+            alpha[count].setHorizontalHeaderLabels (header)
+            alpha[count].setRowCount (len (handle_df.index))
+            self.readFiles (handle_df)
+            Tab_index += 1
+            self.dataFrame_Tab.setCurrentIndex (Tab_index)
+
+            # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+            alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
+
 
     ##암호화 파일 여는 함수
     def open_enc_files(self):
@@ -2846,30 +3109,27 @@ class Ui_Deco_LexO (object):
         # inf 형태 슬라이싱
         inffileform = sfileloc.split('.')[-2]
 
-        try:
-            ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
-            result_df = result_df.dropna (axis=0)
+        ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
+        result_df = result_df.dropna (axis=0)
 
-            ##Lemma와 Category에 빈 칸 있을 시 제거
-            lem_idx = result_df[result_df['Lemma'] == ' '].index
-            cat_idx = result_df[result_df['Category'] == ' '].index
-            result_df = result_df.drop (lem_idx)
-            result_df = result_df.drop (cat_idx)
+        ##Lemma와 Category에 빈 칸 있을 시 제거
+        lem_idx = result_df[result_df['Lemma'] == ' '].index
+        cat_idx = result_df[result_df['Category'] == ' '].index
+        result_df = result_df.drop (lem_idx)
+        result_df = result_df.drop (cat_idx)
 
-            if sfileform == 'csv':
-                col_nme = handle_df.columns.tolist ()
-                result_df = result_df[col_nme]
-                return (result_df.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'))
-            if inffileform == 'inf':
-                col_nme = handle_df.columns.tolist ()
-                result_df = result_df[col_nme]
-                return (inflec_df2dic (result_df, sfileloc))
-            if sfileform == 'dic':
-                col_nme = handle_df.columns.tolist ()
-                result_df = result_df[col_nme]
-                return (df2dic (result_df, sfileloc))
-        except Exception:
-            pass
+        if sfileform == 'csv':
+            col_nme = handle_df.columns.tolist ()
+            result_df = result_df[col_nme]
+            return (result_df.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'), os.startfile (sfileloc))
+        if inffileform == 'inf':
+            col_nme = handle_df.columns.tolist ()
+            result_df = result_df[col_nme]
+            return (inflec_df2dic (result_df, sfileloc), os.startfile (sfileloc))
+        if sfileform == 'dic':
+            col_nme = handle_df.columns.tolist ()
+            result_df = result_df[col_nme]
+            return (df2dic (result_df, sfileloc), os.startfile (sfileloc))
 
     ##현재 보이는 창을 저장하는 기능
     def Save_current_table_function(self):
@@ -2899,15 +3159,15 @@ class Ui_Deco_LexO (object):
             if sfileform == 'csv':
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
-                return (current_table.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'))
+                return (current_table.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'), os.startfile (sfileloc))
             if inffileform == 'inf':
                 col_nme = handle_df.columns.tolist ()
                 result_df = result_df[col_nme]
-                return (inflec_df2dic (result_df, sfileloc))
+                return (inflec_df2dic (result_df, sfileloc), os.startfile (sfileloc))
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
-                return (df2dic (current_table, sfileloc))
+                return (df2dic (current_table, sfileloc), os.startfile (sfileloc))
         except Exception:
             pass
 
