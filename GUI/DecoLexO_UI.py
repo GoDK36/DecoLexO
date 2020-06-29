@@ -15,7 +15,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from collections import OrderedDict
 import DecoLexO_Resource_rc
 
-# !TODO: dic 파일이나 inf.dic 파일 불러오고 열었을때 문제
+# !ERROR: Filter 부분 에러 (inf.dic을 열었을때 에러가 난다.)
+# !ERROR: Edit 부분 에러 (특정 inf.dic을 열었을때 에러가 난다.)
+# !EROOR: 둘다 filtered_df나 handled_df에 저장되는 과정에서 문제가 생긴듯 싶음.
 
 # tab_nme list
 # 열린 탭의 이름을 저장하는 리스트
@@ -35,7 +37,7 @@ original_index = []
 
 ##Function Code##
 # Merge 기능을 위한 checkinfo 펑션
-def check_info(self, word):
+def check_info(word):
     sem_rgx = re.compile (r'[Q][A-Z]{3}')  # semantic tagset
     syn_rgx = re.compile (r'[Y][A-Z]{3}')  # syntactic tagset
     dom_rgx = re.compile (r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')  # domain tagset
@@ -273,6 +275,7 @@ def dic2df(file_path):
     data = []
     for info in dic:
         info = info.replace(' \n', '')
+        info = info.replace(',', '+')
         info = info.split('+')
     
         data.append(info)
@@ -2969,7 +2972,6 @@ class Ui_Deco_LexO (object):
         # inf 형태 슬라이싱
         inffileform = sfileloc.split('.')[-2]
         
-        print(inffileform)
 
         ##아무 선택도 안하고 취소할때는 넘어가기
         if fname == ('', ''):
@@ -3018,7 +3020,6 @@ class Ui_Deco_LexO (object):
             tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
             Ofileloc = str (fname).split ("', '")[0][2:]
             original_read = infdic2df(Ofileloc)
-            print("k")
             handle_df = column_name (original_read)
             handle_df_list.append (handle_df)
             filtered_df = handle_df.copy ()
@@ -3848,115 +3849,111 @@ class Ui_Deco_LexO (object):
             pass
 
     def merge(self):
-        try:
-            # 들어오는 데이터를 병합할 변수
-            merge_data = pd.read_csv (merge_fname[0][0], header=None, encoding='utf-8-sig')
-            merge_data = column_name (merge_data)
-            data_files = merge_fname[0][1:]
-            data_df_list = []
-            for i in data_files:
-                temp_data = pd.read_csv (i, header=None, encoding='utf-8-sig')
-                temp_data = column_name (temp_data)
-                data_df_list.append (temp_data)
-            # 두 번째부터는 들어오는 데이터를 data변수에 저장하고
-            # 이전에 저장해둔 merge_data와 data를 concat으로 병합한 뒤
-            # 두 데이터를 sort_values로 정렬을 시켜준다.
-            for data in data_df_list:
-                merge_data = pd.concat ([merge_data, data], ignore_index=True)
-            merge_data = merge_data.sort_values (by='Lemma')
-            merge_data = merge_data.reset_index ()
-            merge_data = merge_data.fillna ('')
-            del merge_data['index']
-            cnt = 1
-            # 사용자가 입력할 col_name.
-            # gui상에서 .text()로 입력받는다.
-            col_data = 'MorInfo1'
 
+        # 들어오는 데이터를 병합할 변수
+        merge_data = pd.read_csv (merge_fname[0][0], header=None, encoding='utf-8-sig')
+        merge_data = column_name (merge_data)
+        data_files = merge_fname[0][1:]
+        data_df_list = []
+        for i in data_files:
+            temp_data = pd.read_csv (i, header=None, encoding='utf-8-sig')
+            temp_data = column_name (temp_data)
+            data_df_list.append (temp_data)
+        # 두 번째부터는 들어오는 데이터를 data변수에 저장하고
+        # 이전에 저장해둔 merge_data와 data를 concat으로 병합한 뒤
+        # 두 데이터를 sort_values로 정렬을 시켜준다.
+        for data in data_df_list:
+            merge_data = pd.concat ([merge_data, data], ignore_index=True)
+        merge_data = merge_data.sort_values (by='Lemma')
+        merge_data = merge_data.reset_index ()
+        merge_data = merge_data.fillna ('')
+        del merge_data['index']
+
+        rule_data = pd.read_csv (self.RuleLineEdit.text (), header=None, encoding='utf-8-sig')
+        rules = []
+        for rule_cnt in range (len (rule_data)):
+            rules.append (rule_data.loc[rule_cnt].to_list ())
+        
+        # rule에서 관여할 칼럼 이름(숫자 없어도 됨)
+        col_data = rules[0][0]
+
+        del rules[0]
+        del_row_list = []
+        for rule in rules:
             # 우선시 되는 데이터 : my_data, 지워져도 되는 데이터 del_data
-            # gui상에서 .text()로 입력받는다.
-            rule_data = pd.read_csv (self.RuleLineEdit.text (), header=None, encoding='utf-8-sig')
-            rules = []
-            for rule_cnt in range (len (rule_data)):
-                rules.append (rule_data.loc[rule_cnt].to_list ())
-            del_row_list = []
-            for rule in rules:
-                my_data = rule[0]
-                del_data = rule[1]
-                for i in range (0, len (merge_data) - 1):
-                    for j in range (i + 1, i + cnt + 1):
-                        # first에는 i번째 단어를 음절별로 나누어서 저장하고
-                        # second에는 j번째(i다음 단어)를 음절로 나누어서 저장한다.
-                        first = Divide (merge_data.loc[i, 'Lemma'])
-                        second = Divide (merge_data.loc[j, 'Lemma'])
-                        if first[0] != second[0]:
+            my_data = rule[0]
+            del_data = rule[1]
+            for i in range (0, len (merge_data) - 1):
+                for j in range (i + 1, i + 2):
+                    # first에는 i번째 단어를 음절별로 나누어서 저장하고
+                    # second에는 j번째(i다음 단어)를 음절로 나누어서 저장한다.
+                    first = merge_data.loc[i, 'Lemma']
+                    second = merge_data.loc[j, 'Lemma']
+                    
+                    # 빠른 비교를 위해 단어의 길이부터 비교한다.
+                    if len(first)!= len(second):
+                        break
+                    else:
+                        # 길이는 같지만 단어가 다르면 for문을 종료한다.
+                        if first != second:
                             break
-                            # 만약 단어의 앞글자가 같다면 아래 코드를 실행한다.
+
+                        # 길이가 같고 단어까지 같으면 입력 받은 mydata가 i번째에 있는지 아님 j(i+1)번째 있는지 확인한다.
                         else:
-                            # 앞글자는 같지만 단어가 다르면 for문을 종료한다.
-                            if first != second:
-                                break
+                            # rule에서 설정한 칼럼이름(col_data)가 merge_data의 어느 칼럼에 속하는지 확인
+                            for col_nms in merge_data.columns.tolist():
+                                if col_data in col_nms:
+                                    # i번째 오는 데이터가  유지해야하는 데이터(my_data)일때
+                                    if my_data == merge_data.loc[i, col_nms] and del_data == merge_data.loc[j, col_nms]:
+                                        # 유지할 데이터를 stem_data, 따라오는(지워져야 할) 데이터를 follow_data
+                                        stem_data = merge_data.iloc[i].values.tolist ()[2:]
+                                        follow_data = merge_data.iloc[j].values.tolist ()[2:]
+                                        for data in stem_data:
+                                            if data not in follow_data:
+                                                col = check_info (data)
+                                                col_nme = merge_data.columns.tolist()
+                                                for mer_col in col_nme:
+                                                    if col in mer_col and merge_data.loc[j, mer_col] == del_data:
+                                                        merge_data.loc[j, mer_col] = data
+                                                        break
+                                        del_row_list.append (j)
 
-                            # 앞글자가 같고 단어까지 같으면 입력 받은 mydata가 i번째에 있는지 아님 j(i+1)번째 있는지 확인한다.
-                            else:
-                                if my_data == merge_data.loc[i, col_data] and del_data == merge_data.loc[j, col_data]:
-                                    # reduplication.append(merge_data.iloc[i].values.tolist())
-                                    # reduplication.append(merge_data.iloc[j].values.tolist())
-
-                                    # stem_data에는 i번째 단어 정보를 리스트형태로 저장하고
-                                    # follow_data에는 j번째 (i+1)번째 단어 정보를 리스트 형태로 저장한다.
-                                    # 변수 x는 follow_data를 돌면서 follow_data요소가 stem_data에 정보가 없으면
-                                    # 그 정보들 check_info()함수에 넘겨서 정보를 col에 저장해준다(ex. MorInfo)
-                                    # y는 merge_data의 colum 정보들을 돌면서
-                                    # check_info로 입력받은 정보가 들어있는 column이 처음으로 빈칸이 나오는 장소에
-                                    # stem_data에 들어있지 않은 정보(follow_data)를 merge_data에 넣어준다.
-                                    stem_data1 = merge_data.iloc[i].values.tolist ()
-                                    follow_data1 = merge_data.iloc[j].values.tolist ()
-                                    for x in range (4, len (follow_data1) - 1):
-                                        if follow_data1[x] not in stem_data1:
-                                            col = check_info (follow_data1[x])
-                                            col_nme = merge_data.columns
-                                            for y in range (4, len (col_nme)):
-                                                if col in col_nme[y] and merge_data.loc[j, col_nme[y]] == '':
-                                                    merge_data.loc[j, col_nme[y]] = follow_data1[x]
-                                                    break
-                                    del_row_list.append (j)
-
-                                elif my_data == merge_data.loc[i, col_data] and del_data == merge_data.loc[j, col_data]:
-                                    # reduplication.append(merge_data.iloc[i].values.tolist())
-                                    # reduplication.append(merge_data.iloc[j].values.tolist())
-                                    stem_data2 = merge_data.iloc[j].values.tolist ()
-                                    follow_data2 = merge_data.iloc[i].values.tolist ()
-                                    for x in range (4, len (follow_data2) - 1):
-                                        if follow_data2[x] not in stem_data2:
-                                            col = check_info (follow_data2[x])
-                                            col_nme = merge_data.columns
-                                            for y in range (4, len (col_nme)):
-                                                if col in col_nme[y] and merge_data.loc[j, col_nme[y]] == '':
-                                                    merge_data.loc[j, col_nme[y]] = follow_data2[x]
-                                                    break
-                                    del_row_list.append (j)
-                                else:
-                                    pass
-            del_temp = []
-            for i in del_row_list:
-                del_temp.append (merge_data.iloc[i].tolist ())
-            del_df = pd.DataFrame (del_temp)
+                                    # j번째 오는 데이터가  유지해야하는 데이터(my_data)일때
+                                    elif my_data == merge_data.loc[j, col_nms] and del_data == merge_data.loc[i, col_nms]:
+                                        # 유지할 데이터를 stem_data, 따라오는(지워져야 할) 데이터를 follow_data
+                                        stem_data = merge_data.iloc[j].values.tolist ()[2:]
+                                        follow_data = merge_data.iloc[i].values.tolist ()[2:]
+                                        for data in stem_data:
+                                            if data not in follow_data:
+                                                col = check_info (data)
+                                                col_nme = merge_data.columns
+                                                for mer_col in col_nme:
+                                                    if col in mer_col and merge_data.loc[i, mer_col] == del_data:
+                                                        merge_data.loc[i, mer_col] = data
+                                                        break
+                                        del_row_list.append (i)
+                                    else:
+                                        pass
+        del_temp = []
+        for i in del_row_list:
+            del_temp.append(merge_data.iloc[i].tolist())
+        del_df = pd.DataFrame(del_temp)
+        if len(del_df) != 0:
             del_df = column_name (del_df)
             del_sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Delete Row File', '', 'CSV File (*.csv)')
-            del_sfileloc = str (del_sname).split ("', '")[0][2:]
-            del_df.to_csv (del_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
+            del_sfileloc = str(del_sname).split("', '")[0][2:]
+            del_df.to_csv(del_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
 
-            merge_data = merge_data.drop (del_row_list, 0)
-            merge_data = merge_data.reset_index ()
-            del merge_data["index"]
+        merge_data = merge_data.drop(del_row_list, 0)
+        merge_data = merge_data.reset_index()
+        del merge_data["index"]
 
-            result_sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Merging Result', '', 'CSV File (*.csv)')
-            result_sfileloc = str (result_sname).split ("', '")[0][2:]
-            merge_data.to_csv (result_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
-            self.Merge_window.close ()
-            os.startfile (result_sfileloc)
-        except Exception:
-            pass
+        result_sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Merging Result', '', 'CSV File (*.csv)')
+        result_sfileloc = str(result_sname).split("', '")[0][2:]
+        merge_data.to_csv(result_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
+        self.Merge_window.close()
+        os.startfile(result_sfileloc)
+
 
     ##About LexO
     def About_LexO_moudule(self):
