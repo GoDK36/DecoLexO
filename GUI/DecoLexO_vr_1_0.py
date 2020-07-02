@@ -10,14 +10,10 @@ import pandas as pd
 import numpy as np
 import os, re
 import base64, hashlib
-#from Crypto.Cipher import AES
+from Crypto.Cipher import AES
 from PyQt5 import QtCore, QtGui, QtWidgets
 from collections import OrderedDict
-#import DecoLexO_Resource_rc
-
-# !ERROR: Filter 부분 에러 (inf.dic을 열었을때 에러가 난다.)
-# !ERROR: Edit 부분 에러 (특정 inf.dic을 열었을때 에러가 난다.)
-# !EROOR: 둘다 filtered_df나 handled_df에 저장되는 과정에서 문제가 생긴듯 싶음.
+import DecoLexO_Resource_rc
 
 # tab_nme list
 # 열린 탭의 이름을 저장하는 리스트
@@ -37,7 +33,7 @@ original_index = []
 
 ##Function Code##
 # Merge 기능을 위한 checkinfo 펑션
-def check_info(word):
+def check_info(self, word):
     sem_rgx = re.compile (r'[Q][A-Z]{3}')  # semantic tagset
     syn_rgx = re.compile (r'[Y][A-Z]{3}')  # syntactic tagset
     dom_rgx = re.compile (r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')  # domain tagset
@@ -166,352 +162,10 @@ def column_name(df):
     return df
 
 
-# inf.dic 파일을 DataFrame화하는 함수
-
-def infdic2df(file_path):
-    # inf.dic 파일 전처리
-    f1 = open(file_path, "r", encoding='utf-8-sig')
-    dic = f1.readlines()
-    data = []
-    for info in dic:
-        info = info.replace(' \n', '')
-        syl = info.replace('.', '+')
-        syl = syl.split(',')[1:][0]
-        info = syl.split('+')
-
-        # 카테고리 만들기
-        cat = info[-1]
-        cat = cat[-3:]
-        cat = cat[0] + 'S' + cat[1:]
-        del info[-1]
-        del info[1]
-        info.insert(1, cat)
-    
-        data.append(info)
-
-    # 필요한 정규표현식
-    sem_rgx = re.compile(r'[Q][A-Z]{3}')   # semantic tagset
-    syn_rgx = re.compile(r'[Y][A-Z]{3}')   # syntactic tagset
-    dom_rgx = re.compile(r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')   # domain tagset
-    ent_rgx = re.compile(r'[X]{2}[A-Z]{2}')  # entity tagset
-    mor_rgx = re.compile(r'[A-Z]{3}')  # morph tagset
-    word_rgx = re.compile(r"[가-힣]+")  # Lemma 찾기
-    cat_rgx = re.compile(r"[A-Z]S[0-9]{2}")  # Category 찾기
-
-    ## 리스트에 ''을 추가하여 각 tag의 종류별로 길이 맞추기
-    data_lst = []
-    for info in data:
-        temp_lst = []
-
-        # 처음 Lemma와 Category 찾기 (index 0, 1)
-        if len(temp_lst) == 0:
-            for tag in info:
-                if word_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-                elif cat_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-        
-        # MorInfo 찾기 (index 2 ~ 16, length 17)
-        if len(temp_lst) == 2:
-            for tag in info:
-                if mor_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # MorInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 17:
-                temp_lst.append('')
-        
-        # SynInfo 찾기 (index 17 ~ 31, length 32)
-        if len(temp_lst) == 17:
-            for tag in info:
-                if syn_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # SynInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 32:
-                temp_lst.append('')
-
-        # SemInfo 찾기 (index 32 ~ 46, length 47)
-        if len(temp_lst) == 32:
-            for tag in info:
-                if sem_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # SemInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 47:
-                temp_lst.append('')
-
-        # EntInfo 찾기 (index 47 ~ 49, length 50)
-        if len(temp_lst) == 47:
-            for tag in info:
-                if ent_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # EntInfo tag의 종류는 최대 3개, 3개를 채울때까지 '' 추가
-            while len(temp_lst) < 50:
-                temp_lst.append('')
-        # DomInfo 찾기 (index 50 ~ 64, length 65)
-        if len(temp_lst) == 50:
-            for tag in info:
-                if dom_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # DomInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 66:
-                temp_lst.append('')
-        data_lst.append(temp_lst)
-
-    ## 데이터 프레임화
-    df = pd.DataFrame(data_lst)
-    
-    
-    return df
-
-
-def dic2df(file_path):
-    # dic 파일 전처리
-    f1 = open(file_path, "r", encoding='utf-8-sig')
-    dic = f1.readlines()
-    data = []
-    for info in dic:
-        info = info.replace(' \n', '')
-        info = info.replace(',', '+')
-        info = info.split('+')
-    
-        data.append(info)
-
-    # 필요한 정규표현식
-    sem_rgx = re.compile(r'[Q][A-Z]{3}')   # semantic tagset
-    syn_rgx = re.compile(r'[Y][A-Z]{3}')   # syntactic tagset
-    dom_rgx = re.compile(r'[X]{1}[ABCDEFGHIJKLMNOPQRSTUVWYZ]{3}')   # domain tagset
-    ent_rgx = re.compile(r'[X]{2}[A-Z]{2}')  # entity tagset
-    mor_rgx = re.compile(r'[A-Z]{3}')  # morph tagset
-    word_rgx = re.compile(r"[가-힣]+")  # Lemma 찾기
-    cat_rgx = re.compile(r"[A-Z]S[0-9]{2}")  # Category 찾기
-
-    ## 리스트에 ''을 추가하여 각 tag의 종류별로 길이 맞추기
-    data_lst = []
-    for info in data:
-        temp_lst = []
-
-        # 처음 Lemma와 Category 찾기 (index 0, 1)
-        if len(temp_lst) == 0:
-            for tag in info:
-                if word_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-                elif cat_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-        
-        # MorInfo 찾기 (index 2 ~ 16, length 17)
-        if len(temp_lst) == 2:
-            for tag in info:
-                if mor_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # MorInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 17:
-                temp_lst.append('')
-        
-        # SynInfo 찾기 (index 17 ~ 31, length 32)
-        if len(temp_lst) == 17:
-            for tag in info:
-                if syn_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # SynInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 32:
-                temp_lst.append('')
-
-        # SemInfo 찾기 (index 32 ~ 46, length 47)
-        if len(temp_lst) == 32:
-            for tag in info:
-                if sem_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # SemInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 47:
-                temp_lst.append('')
-
-        # EntInfo 찾기 (index 47 ~ 49, length 50)
-        if len(temp_lst) == 47:
-            for tag in info:
-                if ent_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # EntInfo tag의 종류는 최대 3개, 3개를 채울때까지 '' 추가
-            while len(temp_lst) < 50:
-                temp_lst.append('')
-        # DomInfo 찾기 (index 50 ~ 64, length 65)
-        if len(temp_lst) == 50:
-            for tag in info:
-                if dom_rgx.fullmatch(tag):
-                    temp_lst.append(tag)
-
-            # DomInfo tag의 종류는 최대 15개, 15개를 채울때까지 '' 추가
-            while len(temp_lst) < 66:
-                temp_lst.append('')
-        data_lst.append(temp_lst)
-
-    ## 데이터 프레임화
-    df = pd.DataFrame(data_lst)
-    
-    
-    return df
-
-
-####################################################################
-# information 부분에서 filter기능이 작동 되는 부분                  #
-###################################################################
-
-def info_equals(df, col_nm, item, original_index):
-    first = 0
-    last = 0
-    for i in range(len(df.columns)): 
-        if col_nm in df.columns.tolist()[i]:
-            if first == 0:
-                first = i
-        else:
-            if first != 0:
-                last = i
-                break
-    
-    filtered_list = []
-
-    for i in range(len(df)):    
-        if item in df.loc[i].tolist()[first : last]:
-            filtered_list.append (df.loc[i].tolist())
-            original_index.append (i)
-
-    filtered_header = handle_df.columns.tolist ()
-    filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
-    filtered_df.head ()
-
-    return filtered_df
-
-def info_starts_with(df, col_nm, item, original_index):
-
-    first = 0
-    last = 0
-    for i in range(len(df.columns)): 
-        if col_nm in df.columns.tolist()[i]:
-            if first == 0:
-                first = i
-        else:
-            if first != 0:
-                last = i
-                break
-    
-    filtered_list = []
-
-    for i in range(len(df)):    
-        for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-            else:
-                if j.startswith(item):
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
-
-    filtered_header = handle_df.columns.tolist ()
-    filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
-    filtered_df.head ()
-
-    return filtered_df
-
-def info_ends_with(df, col_nm, item, original_index):
-    first = 0
-    last = 0
-    for i in range(len(df.columns)): 
-        if col_nm in df.columns.tolist()[i]:
-            if first == 0:
-                first = i
-        else:
-            if first != 0:
-                last = i
-                break
-
-    filtered_list = []
-
-    for i in range(len(df)):    
-        for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-
-            else:
-                if j.endswith(item):
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
-
-    filtered_header = handle_df.columns.tolist ()
-    filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
-    filtered_df.head ()
-
-    return filtered_df
-
-def info_contains(df, col_nm, item, original_index):
-    first = 0
-    last = 0
-    for i in range(len(df.columns)): 
-        if col_nm in df.columns.tolist()[i]:
-            if first == 0:
-                first = i
-        else:
-            if first != 0:
-                last = i
-                break
-    
-    filtered_list = []
-
-    for i in range(len(df)):    
-        for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-            else:
-                if item in j:
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
-
-    filtered_header = handle_df.columns.tolist ()
-    filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
-    filtered_df.head ()
-
-    return filtered_df
-
-def info_is_empty(df, col_nm, item, original_index):
-    first = 0
-    last = 0
-    for i in range(len(df.columns)): 
-        if col_nm in df.columns.tolist()[i]:
-            if first == 0:
-                first = i
-        else:
-            if first != 0:
-                last = i
-                break
-
-    filtered_list = []
-
-    for i in range(len(df)):    
-        for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-            else:
-                if item  not in j:
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
-    
-    filtered_header = handle_df.columns.tolist ()
-    filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
-    filtered_df.head ()
-    
-    return filtered_df
-
-
 #####################################################################
 # filter part에서 Euals, Starts with, Contains, Ends With, Is Empty #
 # 부분을 만들어 내는 함수                                            #
 #####################################################################
-
 
 # 입력받은 word와 같은 단어 정보들을 출력하는 함수
 def Equals(df, col, word, original_index):
@@ -718,7 +372,6 @@ def Is_Empty(df, col, word, original_index):
     filtered_df.head ()
 
     return filtered_df
-
 
 
 ######################################################################
@@ -2160,61 +1813,16 @@ def duprow(df, sel):
 
 
 ##dic파일로 저장하는 함수
-
-# 딕셔너리 자료형의 특징을 이용하여 리스트 요소 순서를 유지하며 중복 제거하기
-
-def rmvspc(alist):
-    d = OrderedDict ()
-    for i in alist:
-        d[i] = True
-        res = list (d.keys ())
-    return res
-
 ####dic작성 시작####
-
 def df2dic(df, filepath):
+    # 딕셔너리 자료형의 특징을 이용하여 리스트 요소 순서를 유지하며 중복 제거하기
 
-    # 필요한 구분자들
-    plus = "+"
-    comma = ','
-
-    # 나중에 txt파일에 쓰기 쉽게 하기 위해 리스트 형식으로 저장
-    dic_lst = []
-
-    ind_l = len (df.index)  # 데이터의 총 개수(index 길이)
-
-    for i in range (0, ind_l):
-        dic = ''
-        ind_lst = list (df.iloc[i])
-        inf_lst = rmvspc (ind_lst)  # 중복되는 요소인 ''을 하나로 줄이기
-        inf_lst.remove ('')  # ''는 필요 없으므로 삭제
-        lem = inf_lst[0]  # lemma 추출
-        dic = lem + comma # 문자열 형식으로 합치기(Lemma 넣어주기)
-
-        # 카테고리 추가
-        cat = inf_lst[1]
-        dic = dic + cat
-
-        # 그 외의 info들을 모두 'ZNZ+LEO+SLB' 이런 형식으로 더해주기
-        for x in range (2, len (inf_lst)):
-            inf = inf_lst[x]
-            dic = dic + plus + inf
-
-        dic_lst.append (str (dic))
-
-    # writedata.py
-    f = open (filepath, 'w', encoding='utf-8-sig')
-
-    for i in range (len (dic_lst)):
-        f.write ('%s \n' % dic_lst[i])
-
-    f.close ()
-
-
-
-####inflec.dic작성 시작####
-
-def inflec_df2dic(df, filepath):
+    def rmvspc(alist):
+        d = OrderedDict ()
+        for i in alist:
+            d[i] = True
+            res = list (d.keys ())
+        return res
 
     # 필요한 구분자들
     spc = "ㆍ"
@@ -2231,11 +1839,8 @@ def inflec_df2dic(df, filepath):
         # dic 파일의 시작이 ㆍ이므로 미리 설정해서 초기화 시켜줌
         dic = "ㆍ"
         ind_lst = list (df.iloc[i])
-        if '' in ind_lst:
-            inf_lst = rmvspc (ind_lst)  # 중복되는 요소인 ''을 하나로 줄이기
-            inf_lst.remove ('')  # ''는 필요 없으므로 삭제
-        else:
-            inf_lst = ind_lst
+        inf_lst = rmvspc (ind_lst)  # 중복되는 요소인 ''을 하나로 줄이기
+        inf_lst.remove ('')  # ''는 필요 없으므로 삭제
         lem = inf_lst[0]  # lemma 추출
         sep_lem = spc.join (lem)  # lemma의 각 음절마다 ㆍ삽입
         dic = dic + sep_lem + com + lem + dot  # 문자열 형식으로 합치기('ㆍ가ㆍ결,가결.' 이 부분까지 완성)
@@ -2263,6 +1868,7 @@ def inflec_df2dic(df, filepath):
         f.write ('%s \n' % dic_lst[i])
 
     f.close ()
+
 
 #############
 # GUI PART  #
@@ -3109,107 +2715,42 @@ class Ui_Deco_LexO (object):
         global count
         global filtered_df_list
 
-        fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '', "CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)")
-        
-        sfileloc = str (fname).split ("', '")[0][2:]
+        try:
+            fname = QtWidgets.QFileDialog.getOpenFileName (None, 'Open CSV file', '', "CSV Files(*.csv)")
 
-        sfileform = sfileloc.split ('.')[-1]
+            ##아무 선택도 안하고 취소할때는 넘어가기
+            if fname == ('', ''):
+                pass
+            else:
+                self.new_tab = QtWidgets.QWidget ()
+                self.new_tab.setObjectName ("new_tab")
+                self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
+                self.gridLayout_2.setObjectName ("gridLayout_2")
+                alpha[count] = QtWidgets.QTableWidget (self.new_tab)
+                alpha[count].setColumnCount (0)
+                alpha[count].setRowCount (0)
+                self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
+                self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
+                tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
+                Ofileloc = str (fname).split ("', '")[0][2:]
+                original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
+                handle_df = column_name (original_read)
+                handle_df_list.append (handle_df)
+                filtered_df = handle_df.copy ()
+                filtered_df_list.append (filtered_df)
+                alpha[count].setColumnCount (len (handle_df.columns))
+                header = handle_df.columns
+                alpha[count].setHorizontalHeaderLabels (header)
+                alpha[count].setRowCount (len (handle_df.index))
+                self.readFiles (handle_df)
+                Tab_index += 1
+                self.dataFrame_Tab.setCurrentIndex (Tab_index)
 
-        # inf 형태 슬라이싱
-        inffileform = sfileloc.split('.')[-2]
-        
+                # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
+                alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
 
-        ##아무 선택도 안하고 취소할때는 넘어가기
-        if fname == ('', ''):
+        except Exception:
             pass
-
-        # csv 파일 열기
-        elif sfileform == 'csv':
-            self.new_tab = QtWidgets.QWidget ()
-            self.new_tab.setObjectName ("new_tab")
-            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
-            self.gridLayout_2.setObjectName ("gridLayout_2")
-            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
-            alpha[count].setColumnCount (0)
-            alpha[count].setRowCount (0)
-            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
-            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
-            tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
-            Ofileloc = str (fname).split ("', '")[0][2:]
-            original_read = pd.read_csv (Ofileloc, header=None, encoding='utf-8-sig')
-            handle_df = column_name (original_read)
-            handle_df_list.append (handle_df)
-            filtered_df = handle_df.copy ()
-            filtered_df_list.append (filtered_df)
-            alpha[count].setColumnCount (len (handle_df.columns))
-            header = handle_df.columns
-            alpha[count].setHorizontalHeaderLabels (header)
-            alpha[count].setRowCount (len (handle_df.index))
-            self.readFiles (handle_df)
-            Tab_index += 1
-            self.dataFrame_Tab.setCurrentIndex (Tab_index)
-
-            # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
-            alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
-
-        # inf.dic 파일 열기
-        elif inffileform == 'inf':
-            self.new_tab = QtWidgets.QWidget ()
-            self.new_tab.setObjectName ("new_tab")
-            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
-            self.gridLayout_2.setObjectName ("gridLayout_2")
-            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
-            alpha[count].setColumnCount (0)
-            alpha[count].setRowCount (0)
-            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
-            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
-            tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
-            Ofileloc = str (fname).split ("', '")[0][2:]
-            original_read = infdic2df(Ofileloc)
-            handle_df = column_name (original_read)
-            handle_df_list.append (handle_df)
-            filtered_df = handle_df.copy ()
-            filtered_df_list.append (filtered_df)
-            alpha[count].setColumnCount (len (handle_df.columns))
-            header = handle_df.columns
-            alpha[count].setHorizontalHeaderLabels (header)
-            alpha[count].setRowCount (len (handle_df.index))
-            self.readFiles (handle_df)
-            Tab_index += 1
-            self.dataFrame_Tab.setCurrentIndex (Tab_index)
-
-            # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
-            alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
-        
-        # dic 파일 열기
-        elif sfileform == 'dic':
-            self.new_tab = QtWidgets.QWidget ()
-            self.new_tab.setObjectName ("new_tab")
-            self.gridLayout_2 = QtWidgets.QGridLayout (self.new_tab)
-            self.gridLayout_2.setObjectName ("gridLayout_2")
-            alpha[count] = QtWidgets.QTableWidget (self.new_tab)
-            alpha[count].setColumnCount (0)
-            alpha[count].setRowCount (0)
-            self.gridLayout_2.addWidget (alpha[count], 0, 1, 1, 1)
-            self.dataFrame_Tab.addTab (self.new_tab, str (fname).split ("', '")[0][2:].split ('/')[-1])
-            tab_name_list.append (str (fname).split ("', '")[0][2:].split ('/')[-1])
-            Ofileloc = str (fname).split ("', '")[0][2:]
-            original_read = dic2df(Ofileloc)
-            handle_df = column_name (original_read)
-            handle_df_list.append (handle_df)
-            filtered_df = handle_df.copy ()
-            filtered_df_list.append (filtered_df)
-            alpha[count].setColumnCount (len (handle_df.columns))
-            header = handle_df.columns
-            alpha[count].setHorizontalHeaderLabels (header)
-            alpha[count].setRowCount (len (handle_df.index))
-            self.readFiles (handle_df)
-            Tab_index += 1
-            self.dataFrame_Tab.setCurrentIndex (Tab_index)
-
-            # enter를 누르면 entered_table에서 onclicekd_table을 불러서 정보를 저장한다.
-            alpha[self.dataFrame_Tab.currentIndex () - 1].activated.connect (self.entered_table)
-
 
     ##암호화 파일 여는 함수
     def open_enc_files(self):
@@ -3242,41 +2783,37 @@ class Ui_Deco_LexO (object):
         self.FSecL_1.setText (''), self.FSecL_2.setText (''), self.FSecL_3.setText ('')
         self.FLast_1.setText (''), self.FLast_2.setText (''), self.FLast_3.setText ('')
 
-    ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, inflec_df2dic to_csv)
+    ##Save As를 눌렀을때 실행될 저장 함수들(df2dic, to_csv)
     def save_as(self):
         global handle_df
 
         result_df = handle_df_list[self.dataFrame_Tab.currentIndex () - 1]
-        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)')
+        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic)')
 
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split ('.')[-1]
 
-        # inf 형태 슬라이싱
-        inffileform = sfileloc.split('.')[-2]
+        try:
+            ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
+            result_df = result_df.dropna (axis=0)
 
-        ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
-        result_df = result_df.dropna (axis=0)
+            ##Lemma와 Category에 빈 칸 있을 시 제거
+            lem_idx = result_df[result_df['Lemma'] == ' '].index
+            cat_idx = result_df[result_df['Category'] == ' '].index
+            result_df = result_df.drop (lem_idx)
+            result_df = result_df.drop (cat_idx)
 
-        ##Lemma와 Category에 빈 칸 있을 시 제거
-        lem_idx = result_df[result_df['Lemma'] == ' '].index
-        cat_idx = result_df[result_df['Category'] == ' '].index
-        result_df = result_df.drop (lem_idx)
-        result_df = result_df.drop (cat_idx)
-
-        if sfileform == 'csv':
-            col_nme = handle_df.columns.tolist ()
-            result_df = result_df[col_nme]
-            return (result_df.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'), os.startfile (sfileloc))
-        if inffileform == 'inf':
-            col_nme = handle_df.columns.tolist ()
-            result_df = result_df[col_nme]
-            return (inflec_df2dic (result_df, sfileloc), os.startfile (sfileloc))
-        if sfileform == 'dic':
-            col_nme = handle_df.columns.tolist ()
-            result_df = result_df[col_nme]
-            return (df2dic (result_df, sfileloc), os.startfile (sfileloc))
+            if sfileform == 'csv':
+                col_nme = handle_df.columns.tolist ()
+                result_df = result_df[col_nme]
+                return (result_df.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'))
+            if sfileform == 'dic':
+                col_nme = handle_df.columns.tolist ()
+                result_df = result_df[col_nme]
+                return (df2dic (result_df, sfileloc))
+        except Exception:
+            pass
 
     ##현재 보이는 창을 저장하는 기능
     def Save_current_table_function(self):
@@ -3285,15 +2822,11 @@ class Ui_Deco_LexO (object):
 
         current_table = filtered_df_list[self.dataFrame_Tab.currentIndex () - 1]
 
-        print(current_table)
-
-        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)')
+        sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic)')
 
         sfileloc = str (sname).split ("', '")[0][2:]
 
         sfileform = sfileloc.split ('.')[-1]
-
-        inffileform = sfileloc.split('.')[-2]
 
         try:
             ##dic 파일로 저장 시 생기는 결측치 오류 값 제거
@@ -3308,15 +2841,11 @@ class Ui_Deco_LexO (object):
             if sfileform == 'csv':
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
-                return (current_table.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'), os.startfile (sfileloc))
-            if inffileform == 'inf':
-                col_nme = handle_df.columns.tolist ()
-                current_table = current_table[col_nme]
-                return (inflec_df2dic (current_table, sfileloc), os.startfile (sfileloc))
+                return (current_table.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'))
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
-                return (df2dic (current_table, sfileloc), os.startfile (sfileloc))
+                return (df2dic (current_table, sfileloc))
         except Exception:
             pass
 
@@ -3369,6 +2898,9 @@ class Ui_Deco_LexO (object):
             handle_df_list[self.dataFrame_Tab.currentIndex () - 1] = handle_df
 
         self.readFiles2 (filtered_df)
+
+    ##TODO: 추가해야하는 목록
+    ##       - Merge 기능
 
     #########################
     ###Filter Function 함수##
@@ -3453,23 +2985,23 @@ class Ui_Deco_LexO (object):
             # 사용자가 colum name을 직접 설정할 경우
             if self.FInfo_Colname.text () != '':
                 if statelis[0] == 1:
-                    filtered_df = info_equals (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
+                    filtered_df = Equals (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
                                           original_index)
 
                 if statelis[0] == 2:
-                    filtered_df = info_starts_with (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
+                    filtered_df = Starts_With (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
                                                original_index)
 
                 if statelis[0] == 3:
-                    filtered_df = info_ends_with (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
+                    filtered_df = Ends_With (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
                                              original_index)
 
                 if statelis[0] == 4:
-                    filtered_df = info_contains (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
+                    filtered_df = Contains (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
                                             original_index)
 
                 if statelis[0] == 5:
-                    filtered_df = info_is_empty (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
+                    filtered_df = Is_Empty (filtered_df, self.FInfo_Colname.text (), self.FInfo_Input.text (),
                                             original_index)
 
                 ##filtered list에 새로 엎어주기
@@ -3480,19 +3012,19 @@ class Ui_Deco_LexO (object):
             # 사용자가 column name을 설정하지 않은 경우
             else:
                 if statelis[0] == 1:
-                    filtered_df = info_equals (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
+                    filtered_df = Equals (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
 
                 if statelis[0] == 2:
-                    filtered_df = info_starts_with (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
+                    filtered_df = Starts_With (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
 
                 if statelis[0] == 3:
-                    filtered_df = info_ends_with (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
+                    filtered_df = Ends_With (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
 
                 if statelis[0] == 4:
-                    filtered_df = info_contains (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
+                    filtered_df = Contains (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
 
                 if statelis[0] == 5:
-                    filtered_df = info_is_empty (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
+                    filtered_df = Is_Empty (filtered_df, 'Lemma', self.FLemma_Input.text (), original_index)
 
                 ##filtered list에 새로 엎어주기
                 filtered_df_list[self.dataFrame_Tab.currentIndex () - 1] = filtered_df
@@ -3586,11 +3118,8 @@ class Ui_Deco_LexO (object):
         ##handle df list에 새로 엎어주기
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex () - 1]
 
-        if len(handle_df) == len(filtered_df):
-            handle_df = filtered_df.copy()
-        else:
-            for i in range (len (original_index)):
-                handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
+        for i in range (len (original_index)):
+            handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
         handle_df_list[self.dataFrame_Tab.currentIndex () - 1] = handle_df
 
@@ -3997,112 +3526,115 @@ class Ui_Deco_LexO (object):
             pass
 
     def merge(self):
+        try:
+            # 들어오는 데이터를 병합할 변수
+            merge_data = pd.read_csv (merge_fname[0][0], header=None, encoding='utf-8-sig')
+            merge_data = column_name (merge_data)
+            data_files = merge_fname[0][1:]
+            data_df_list = []
+            for i in data_files:
+                temp_data = pd.read_csv (i, header=None, encoding='utf-8-sig')
+                temp_data = column_name (temp_data)
+                data_df_list.append (temp_data)
+            # 두 번째부터는 들어오는 데이터를 data변수에 저장하고
+            # 이전에 저장해둔 merge_data와 data를 concat으로 병합한 뒤
+            # 두 데이터를 sort_values로 정렬을 시켜준다.
+            for data in data_df_list:
+                merge_data = pd.concat ([merge_data, data], ignore_index=True)
+            merge_data = merge_data.sort_values (by='Lemma')
+            merge_data = merge_data.reset_index ()
+            merge_data = merge_data.fillna ('')
+            del merge_data['index']
+            cnt = 1
+            # 사용자가 입력할 col_name.
+            # gui상에서 .text()로 입력받는다.
+            col_data = 'MorInfo1'
 
-        # 들어오는 데이터를 병합할 변수
-        merge_data = pd.read_csv (merge_fname[0][0], header=None, encoding='utf-8-sig')
-        merge_data = column_name (merge_data)
-        data_files = merge_fname[0][1:]
-        data_df_list = []
-        for i in data_files:
-            temp_data = pd.read_csv (i, header=None, encoding='utf-8-sig')
-            temp_data = column_name (temp_data)
-            data_df_list.append (temp_data)
-        # 두 번째부터는 들어오는 데이터를 data변수에 저장하고
-        # 이전에 저장해둔 merge_data와 data를 concat으로 병합한 뒤
-        # 두 데이터를 sort_values로 정렬을 시켜준다.
-        for data in data_df_list:
-            merge_data = pd.concat ([merge_data, data], ignore_index=True)
-        merge_data = merge_data.sort_values (by='Lemma')
-        merge_data = merge_data.reset_index ()
-        merge_data = merge_data.fillna ('')
-        del merge_data['index']
-
-        rule_data = pd.read_csv (self.RuleLineEdit.text (), header=None, encoding='utf-8-sig')
-        rules = []
-        for rule_cnt in range (len (rule_data)):
-            rules.append (rule_data.loc[rule_cnt].to_list ())
-        
-        # rule에서 관여할 칼럼 이름(숫자 없어도 됨)
-        col_data = rules[0][0]
-
-        del rules[0]
-        del_row_list = []
-        for rule in rules:
             # 우선시 되는 데이터 : my_data, 지워져도 되는 데이터 del_data
-            my_data = rule[0]
-            del_data = rule[1]
-            for i in range (0, len (merge_data) - 1):
-                for j in range (i + 1, i + 2):
-                    # first에는 i번째 단어를 음절별로 나누어서 저장하고
-                    # second에는 j번째(i다음 단어)를 음절로 나누어서 저장한다.
-                    first = merge_data.loc[i, 'Lemma']
-                    second = merge_data.loc[j, 'Lemma']
-                    
-                    # 빠른 비교를 위해 단어의 길이부터 비교한다.
-                    if len(first)!= len(second):
-                        break
-                    else:
-                        # 길이는 같지만 단어가 다르면 for문을 종료한다.
-                        if first != second:
+            # gui상에서 .text()로 입력받는다.
+            rule_data = pd.read_csv (self.RuleLineEdit.text (), header=None, encoding='utf-8-sig')
+            rules = []
+            for rule_cnt in range (len (rule_data)):
+                rules.append (rule_data.loc[rule_cnt].to_list ())
+            del_row_list = []
+            for rule in rules:
+                my_data = rule[0]
+                del_data = rule[1]
+                for i in range (0, len (merge_data) - 1):
+                    for j in range (i + 1, i + cnt + 1):
+                        # first에는 i번째 단어를 음절별로 나누어서 저장하고
+                        # second에는 j번째(i다음 단어)를 음절로 나누어서 저장한다.
+                        first = Divide (merge_data.loc[i, 'Lemma'])
+                        second = Divide (merge_data.loc[j, 'Lemma'])
+                        if first[0] != second[0]:
                             break
-
-                        # 길이가 같고 단어까지 같으면 입력 받은 mydata가 i번째에 있는지 아님 j(i+1)번째 있는지 확인한다.
+                            # 만약 단어의 앞글자가 같다면 아래 코드를 실행한다.
                         else:
-                            # rule에서 설정한 칼럼이름(col_data)가 merge_data의 어느 칼럼에 속하는지 확인
-                            for col_nms in merge_data.columns.tolist():
-                                if col_data in col_nms:
-                                    # i번째 오는 데이터가  유지해야하는 데이터(my_data)일때
-                                    if my_data == merge_data.loc[i, col_nms] and del_data == merge_data.loc[j, col_nms]:
-                                        # 유지할 데이터를 stem_data, 따라오는(지워져야 할) 데이터를 follow_data
-                                        stem_data = merge_data.iloc[i].values.tolist ()[2:]
-                                        follow_data = merge_data.iloc[j].values.tolist ()[2:]
-                                        for data in stem_data:
-                                            if data not in follow_data:
-                                                col = check_info (data)
-                                                col_nme = merge_data.columns.tolist()
-                                                for mer_col in col_nme:
-                                                    if col in mer_col and merge_data.loc[j, mer_col] == del_data:
-                                                        merge_data.loc[j, mer_col] = data
-                                                        break
-                                        del_row_list.append (i)
+                            # 앞글자는 같지만 단어가 다르면 for문을 종료한다.
+                            if first != second:
+                                break
 
-                                    # j번째 오는 데이터가  유지해야하는 데이터(my_data)일때
-                                    elif my_data == merge_data.loc[j, col_nms] and del_data == merge_data.loc[i, col_nms]:
-                                        # 유지할 데이터를 stem_data, 따라오는(지워져야 할) 데이터를 follow_data
-                                        stem_data = merge_data.iloc[j].values.tolist ()[2:]
-                                        follow_data = merge_data.iloc[i].values.tolist ()[2:]
-                                        for data in stem_data:
-                                            if data not in follow_data:
-                                                col = check_info (data)
-                                                col_nme = merge_data.columns
-                                                for mer_col in col_nme:
-                                                    if col in mer_col and merge_data.loc[i, mer_col] == del_data:
-                                                        merge_data.loc[i, mer_col] = data
-                                                        break
-                                        del_row_list.append (j)
-                                    else:
-                                        pass
-        del_temp = []
-        for i in del_row_list:
-            del_temp.append(merge_data.iloc[i].tolist())
-        del_df = pd.DataFrame(del_temp)
-        if len(del_df) != 0:
+                            # 앞글자가 같고 단어까지 같으면 입력 받은 mydata가 i번째에 있는지 아님 j(i+1)번째 있는지 확인한다.
+                            else:
+                                if my_data == merge_data.loc[i, col_data] and del_data == merge_data.loc[j, col_data]:
+                                    # reduplication.append(merge_data.iloc[i].values.tolist())
+                                    # reduplication.append(merge_data.iloc[j].values.tolist())
+
+                                    # stem_data에는 i번째 단어 정보를 리스트형태로 저장하고
+                                    # follow_data에는 j번째 (i+1)번째 단어 정보를 리스트 형태로 저장한다.
+                                    # 변수 x는 follow_data를 돌면서 follow_data요소가 stem_data에 정보가 없으면
+                                    # 그 정보들 check_info()함수에 넘겨서 정보를 col에 저장해준다(ex. MorInfo)
+                                    # y는 merge_data의 colum 정보들을 돌면서
+                                    # check_info로 입력받은 정보가 들어있는 column이 처음으로 빈칸이 나오는 장소에
+                                    # stem_data에 들어있지 않은 정보(follow_data)를 merge_data에 넣어준다.
+                                    stem_data1 = merge_data.iloc[i].values.tolist ()
+                                    follow_data1 = merge_data.iloc[j].values.tolist ()
+                                    for x in range (4, len (follow_data1) - 1):
+                                        if follow_data1[x] not in stem_data1:
+                                            col = check_info (follow_data1[x])
+                                            col_nme = merge_data.columns
+                                            for y in range (4, len (col_nme)):
+                                                if col in col_nme[y] and merge_data.loc[j, col_nme[y]] == '':
+                                                    merge_data.loc[j, col_nme[y]] = follow_data1[x]
+                                                    break
+                                    del_row_list.append (j)
+
+                                elif my_data == merge_data.loc[i, col_data] and del_data == merge_data.loc[j, col_data]:
+                                    # reduplication.append(merge_data.iloc[i].values.tolist())
+                                    # reduplication.append(merge_data.iloc[j].values.tolist())
+                                    stem_data2 = merge_data.iloc[j].values.tolist ()
+                                    follow_data2 = merge_data.iloc[i].values.tolist ()
+                                    for x in range (4, len (follow_data2) - 1):
+                                        if follow_data2[x] not in stem_data2:
+                                            col = check_info (follow_data2[x])
+                                            col_nme = merge_data.columns
+                                            for y in range (4, len (col_nme)):
+                                                if col in col_nme[y] and merge_data.loc[j, col_nme[y]] == '':
+                                                    merge_data.loc[j, col_nme[y]] = follow_data2[x]
+                                                    break
+                                    del_row_list.append (j)
+                                else:
+                                    pass
+            del_temp = []
+            for i in del_row_list:
+                del_temp.append (merge_data.iloc[i].tolist ())
+            del_df = pd.DataFrame (del_temp)
             del_df = column_name (del_df)
             del_sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Delete Row File', '', 'CSV File (*.csv)')
-            del_sfileloc = str(del_sname).split("', '")[0][2:]
-            del_df.to_csv(del_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
-            os.startfiles(del_sfileloc)
+            del_sfileloc = str (del_sname).split ("', '")[0][2:]
+            del_df.to_csv (del_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
 
-        merge_data = merge_data.drop(del_row_list, 0)
-        merge_data = merge_data.reset_index()
-        del merge_data["index"]
+            merge_data = merge_data.drop (del_row_list, 0)
+            merge_data = merge_data.reset_index ()
+            del merge_data["index"]
 
-        result_sname = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Merging Result', '', 'CSV File (*.csv)')
-        result_sfileloc = str(result_sname).split("', '")[0][2:]
-        merge_data.to_csv(result_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
-        self.Merge_window.close()
-        os.startfile(result_sfileloc)
-
+            result_sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Merging Result', '', 'CSV File (*.csv)')
+            result_sfileloc = str (result_sname).split ("', '")[0][2:]
+            merge_data.to_csv (result_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
+            self.Merge_window.close ()
+            os.startfile (result_sfileloc)
+        except Exception:
+            pass
 
     ##About LexO
     def About_LexO_moudule(self):
