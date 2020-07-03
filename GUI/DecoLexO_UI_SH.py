@@ -358,11 +358,9 @@ def dic2df(file_path):
     
     return df
 
-
 ####################################################################
 # information 부분에서 filter기능이 작동 되는 부분                  #
 ###################################################################
-
 def info_equals(df, col_nm, item, original_index):
     first = 0
     last = 0
@@ -370,11 +368,15 @@ def info_equals(df, col_nm, item, original_index):
         if col_nm in df.columns.tolist()[i]:
             if first == 0:
                 first = i
+            if i == len(df.columns)-1:
+                last = i
         else:
             if first != 0:
                 last = i
                 break
     
+    print(first)
+    print(last)
     filtered_list = []
 
     for i in range(len(df)):    
@@ -396,6 +398,8 @@ def info_starts_with(df, col_nm, item, original_index):
         if col_nm in df.columns.tolist()[i]:
             if first == 0:
                 first = i
+            if i == len(df.columns)-1:
+                last = i
         else:
             if first != 0:
                 last = i
@@ -405,12 +409,9 @@ def info_starts_with(df, col_nm, item, original_index):
 
     for i in range(len(df)):    
         for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-            else:
-                if j.startswith(item):
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
+            if j.startswith(item):
+                filtered_list.append (df.loc[i].tolist())
+                original_index.append (i)
 
     filtered_header = handle_df.columns.tolist ()
     filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
@@ -425,6 +426,8 @@ def info_ends_with(df, col_nm, item, original_index):
         if col_nm in df.columns.tolist()[i]:
             if first == 0:
                 first = i
+            if i == len(df.columns)-1:
+                last = i
         else:
             if first != 0:
                 last = i
@@ -434,13 +437,9 @@ def info_ends_with(df, col_nm, item, original_index):
 
     for i in range(len(df)):    
         for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-
-            else:
-                if j.endswith(item):
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
+            if j.endswith(item):
+                filtered_list.append (df.loc[i].tolist())
+                original_index.append (i)
 
     filtered_header = handle_df.columns.tolist ()
     filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
@@ -455,6 +454,8 @@ def info_contains(df, col_nm, item, original_index):
         if col_nm in df.columns.tolist()[i]:
             if first == 0:
                 first = i
+            if i == len(df.columns)-1:
+                last = i
         else:
             if first != 0:
                 last = i
@@ -464,12 +465,9 @@ def info_contains(df, col_nm, item, original_index):
 
     for i in range(len(df)):    
         for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-            else:
-                if item in j:
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
+            if item in j:
+                filtered_list.append (df.loc[i].tolist())
+                original_index.append (i)
 
     filtered_header = handle_df.columns.tolist ()
     filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
@@ -484,6 +482,8 @@ def info_is_empty(df, col_nm, item, original_index):
         if col_nm in df.columns.tolist()[i]:
             if first == 0:
                 first = i
+            if i == len(df.columns)-1:
+                last = i
         else:
             if first != 0:
                 last = i
@@ -493,25 +493,16 @@ def info_is_empty(df, col_nm, item, original_index):
 
     for i in range(len(df)):    
         for j in df.loc[i].tolist()[first : last]:
-            if j == '':
-                break
-            else:
-                if item  not in j:
-                    filtered_list.append (df.loc[i].tolist())
-                    original_index.append (i)
+            if item  not in j:
+                filtered_list.append (df.loc[i].tolist())
+                original_index.append (i)
     
     filtered_header = handle_df.columns.tolist ()
     filtered_df = pd.DataFrame (filtered_list, columns=filtered_header)
     filtered_df.head ()
     
     return filtered_df
-
-
-#####################################################################
-# filter part에서 Euals, Starts with, Contains, Ends With, Is Empty #
-# 부분을 만들어 내는 함수                                            #
-#####################################################################
-
+    
 
 # 입력받은 word와 같은 단어 정보들을 출력하는 함수
 def Equals(df, col, word, original_index):
@@ -3285,8 +3276,6 @@ class Ui_Deco_LexO (object):
 
         current_table = filtered_df_list[self.dataFrame_Tab.currentIndex () - 1]
 
-        print(current_table)
-
         sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Location', '', 'CSV File (*.csv);; DIC File (*.dic);; INF.DIC File (*.inf.dic)')
 
         sfileloc = str (sname).split ("', '")[0][2:]
@@ -3311,8 +3300,8 @@ class Ui_Deco_LexO (object):
                 return (current_table.to_csv (sfileloc, header=None, index=False, na_rep='', encoding='utf-8-sig'), os.startfile (sfileloc))
             if inffileform == 'inf':
                 col_nme = handle_df.columns.tolist ()
-                current_table = current_table[col_nme]
-                return (inflec_df2dic (current_table, sfileloc), os.startfile (sfileloc))
+                result_df = result_df[col_nme]
+                return (inflec_df2dic (result_df, sfileloc), os.startfile (sfileloc))
             if sfileform == 'dic':
                 col_nme = handle_df.columns.tolist ()
                 current_table = current_table[col_nme]
@@ -3559,7 +3548,7 @@ class Ui_Deco_LexO (object):
 
         ##handle df list에 새로 엎어주기
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex () - 1]
-
+        
         for i in range (len (original_index)):
             handle_df.iloc[original_index[i], :] = filtered_df.iloc[i, :]
 
@@ -3585,6 +3574,9 @@ class Ui_Deco_LexO (object):
 
         ##handle df list에 새로 엎어주기
         handle_df = handle_df_list[self.dataFrame_Tab.currentIndex () - 1]
+
+        print(len(handle_df))
+        print(len(filtered_df))
 
         if len(handle_df) == len(filtered_df):
             handle_df = filtered_df.copy()
@@ -4064,7 +4056,7 @@ class Ui_Deco_LexO (object):
                                                     if col in mer_col and merge_data.loc[j, mer_col] == del_data:
                                                         merge_data.loc[j, mer_col] = data
                                                         break
-                                        del_row_list.append (i)
+                                        del_row_list.append (j)
 
                                     # j번째 오는 데이터가  유지해야하는 데이터(my_data)일때
                                     elif my_data == merge_data.loc[j, col_nms] and del_data == merge_data.loc[i, col_nms]:
@@ -4079,7 +4071,7 @@ class Ui_Deco_LexO (object):
                                                     if col in mer_col and merge_data.loc[i, mer_col] == del_data:
                                                         merge_data.loc[i, mer_col] = data
                                                         break
-                                        del_row_list.append (j)
+                                        del_row_list.append (i)
                                     else:
                                         pass
         del_temp = []
@@ -4091,7 +4083,6 @@ class Ui_Deco_LexO (object):
             del_sname = QtWidgets.QFileDialog.getSaveFileName (None, 'Save Delete Row File', '', 'CSV File (*.csv)')
             del_sfileloc = str(del_sname).split("', '")[0][2:]
             del_df.to_csv(del_sfileloc, header=False, index=False, na_rep='', encoding='utf-8-sig')
-            os.startfiles(del_sfileloc)
 
         merge_data = merge_data.drop(del_row_list, 0)
         merge_data = merge_data.reset_index()
